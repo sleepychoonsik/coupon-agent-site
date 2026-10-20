@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>쿠폰 에이전트 사용 설명서</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1d2329;--sub:#5b6570;--line:#dfe3e8;--accent:#0088ff;--soft:#eaf4ff;--warn:#fff6e0;--warnline:#f0c36d;--ok:#e9f7ef;--okline:#7fc79b}
+@media (prefers-color-scheme:dark){:root{--bg:#15181c;--card:#1e2227;--ink:#e8eaed;--sub:#a0a8b1;--line:#343a41;--soft:#1a2a3d;--warn:#3a3020;--warnline:#8a6d2e;--ok:#1d3326;--okline:#3f7a55}}
+*{box-sizing:border-box}
+body{margin:0;word-break:keep-all;overflow-wrap:break-word;background:var(--bg);color:var(--ink);font:15px/1.7 "Pretendard","Malgun Gothic",system-ui,sans-serif}
+main{max-width:880px;margin:0 auto;padding:24px 16px 60px}
+h1{font-size:24px;margin:0 0 4px}
+h2{font-size:19px;margin:0 0 4px}
+h3{font-size:15px;margin:18px 0 6px}
+p{margin:6px 0}
+.sub{color:var(--sub);font-size:14px}
+nav{position:sticky;top:0;z-index:10;display:flex;gap:8px;margin:16px -16px 0;padding:10px 16px;background:var(--bg);border-bottom:1px solid transparent;overflow-x:auto;scrollbar-width:none;transition:border-color .2s,box-shadow .2s}
+nav::-webkit-scrollbar{display:none}
+nav.stuck{border-bottom-color:var(--line);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+nav a{flex:none;white-space:nowrap;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 14px;color:var(--ink);text-decoration:none;font-size:14px;transition:background .15s,color .15s,border-color .15s}
+nav a:hover{border-color:var(--accent)}
+nav a.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+section.card[id]{scroll-margin-top:72px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 22px;margin-top:18px}
+.who{display:inline-block;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--soft);color:var(--accent);margin-bottom:6px}
+.tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:12px}
+.tool{border:1px solid var(--line);border-radius:10px;padding:14px 16px;background:var(--bg);display:flex;flex-direction:column;gap:6px}
+.tool .num{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.02em}
+.tool .name{font-size:16px;font-weight:700;line-height:1.4}
+.tool .meta{font-size:13px;color:var(--sub);line-height:1.5}
+.tool .meta b{color:var(--ink);font-weight:600}
+.tool .what{font-size:14px;line-height:1.6;margin-top:2px}
+ol{padding-left:22px;margin:6px 0}
+ol li{margin:4px 0}
+ul{padding-left:20px;margin:6px 0}
+b.btn,span.btn{display:inline-block;border:1px solid var(--line);border-radius:5px;padding:0 7px;font-weight:600;font-size:13px;background:var(--bg)}
+.warn{background:var(--warn);border:1px solid var(--warnline);border-radius:8px;padding:10px 14px;margin-top:12px}
+.ok{background:var(--ok);border:1px solid var(--okline);border-radius:8px;padding:10px 14px;margin-top:12px}
+.copy{background:var(--accent);color:#fff;border:0;border-radius:6px;padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.copy.done{background:#2e8b57}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font-size:13px;background:var(--bg)}
+code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:0 4px;font-size:13px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:10px;font-size:14px}
+.flow span{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 10px}
+.flow i{color:var(--sub);font-style:normal}
+.ver{margin:8px 0 0;font-size:13px;color:var(--sub)}
+.ver b{color:var(--ink)}
+.ver a{color:var(--accent)}
+.hist{padding-left:18px}
+.hist>li{margin:8px 0}
+.hist ul{margin:4px 0}
+@media print{nav,.copy{display:none}.card{break-inside:avoid}body{background:#fff}}
+</style>
+</head>
+<body>
+<main>
+  <h1>🤖 쿠폰 에이전트 사용 설명서</h1>
+  <p class="sub">패션1팀 · 세일즈원 쿠폰 등록을 자동으로 해 주는 도구</p>
+  <p class="ver"><b>꾸러미 버전 2026-10-20c</b> · 쿠폰 에이전트 v2026-10-20b</p>
+  <p class="sub" style="margin-top:6px">📌 최신 버전은 항상 이 주소에서 열면 돼요 (즐겨찾기 추천): <a href="https://sleepychoonsik.github.io/coupon-agent-site/" target="_blank">https://sleepychoonsik.github.io/coupon-agent-site/</a> · 이 설명서: <a href="https://sleepychoonsik.github.io/coupon-agent-site/guide-share.html" target="_blank">guide-share.html</a></p>
+
+  <nav>
+    <a href="#start">처음 한 번만</a>
+    <a href="#a1">쿠폰 에이전트</a>
+    <a href="#faq">막히면</a>
+  </nav>
+
+  <section class="card">
+    <h2>한눈에 보기</h2>
+    <div class="tools">
+      <div class="tool"><span class="num">등록하는 사람</span><span class="name">쿠폰 에이전트</span><span class="meta"><b>화면</b> 쿠폰관리 › 쿠폰등록</span><span class="what">상품코드와 원하는 가격(또는 할인율 15%·할인액 -9000)만 넣으면 쿠폰을 계산해 등록하고 상품까지 연결해요.</span></div>
+    </div>
+  </section>
+
+  <section class="card" id="start">
+    <h2>처음 한 번만: 세일즈원에 코드 붙여넣는 법</h2>
+    <p>이 도구는 세일즈원 화면에 <b>코드를 붙여넣어</b> 실행해요. 따로 설치할 것은 없어요.</p>
+    <ol>
+      <li>크롬에서 세일즈원(nsalesone.gshs.co.kr)에 로그인하고, 도구를 쓸 화면을 엽니다.</li>
+      <li>키보드 <kbd>F12</kbd>를 누르면 오른쪽(또는 아래)에 창이 열려요. 위쪽 탭 중 <b>Console</b>(콘솔)을 누릅니다.</li>
+      <li>맨 아래 <code>&gt;</code> 표시가 있는 줄을 클릭하고 <kbd>Ctrl</kbd>+<kbd>V</kbd>로 붙여넣은 뒤 <kbd>Enter</kbd>.</li>
+      <li>처음 한 번은 크롬이 붙여넣기를 막고 <code>allow pasting</code>을 입력하라고 해요. 그 줄에 <b>allow pasting</b>을 그대로 치고 <kbd>Enter</kbd>, 다시 붙여넣으면 됩니다.</li>
+      <li>세일즈원 화면 오른쪽에 도구 창이 뜨면 성공이에요. 쿠폰 에이전트 창은 오른쪽 위쪽까지 길게 떠요. F12 창은 다시 <kbd>F12</kbd>를 눌러 닫아도 돼요.</li>
+    </ol>
+    <div class="ok">세일즈원 화면을 <b>새로고침하면 도구 창이 사라져요.</b> 다시 쓰려면 같은 방법으로 다시 붙여넣으면 됩니다. (쿠폰 에이전트는 등록한 쿠폰 내역을 기억하고 있어서 다시 붙여넣어도 이어서 할 수 있어요.)</div>
+  </section>
+
+  <section class="card" id="a1">
+    <span class="who">등록하는 사람</span>
+    <h2>쿠폰 에이전트</h2>
+
+    <h3>언제 쓰나</h3>
+    <p>상품 가격을 쿠폰으로 맞춰야 할 때. 예) 모바일라이브 방송 쿠폰, 기간 행사 쿠폰. <b>상품코드와 원하는 고객 가격</b>(또는 할인율·할인액)만 알면 돼요.</p>
+
+    <h3>준비물</h3>
+    <ul>
+      <li>파일 <b>1_쿠폰에이전트.html</b> (공유받은 폴더에 있어요. 더블클릭하면 크롬에서 열려요. 인터넷에 아무것도 보내지 않아요.)</li>
+      <li>엑셀에 정리한 <b>상품코드 | 가격 또는 할인</b> 두 열 (최종가 <b>89000</b>, 할인율 <b>15%</b>, 할인액 <b>-9000</b>)</li>
+      <li>쿠폰 기간 (모바일라이브면 방송 시작 시각만)</li>
+    </ul>
+
+    <h3>순서</h3>
+    <ol>
+      <li><b>1_쿠폰에이전트.html</b>을 열고 <b>1번 칸</b>에 엑셀의 상품코드·가격 또는 할인 두 열을 복사해 붙여넣습니다. 2열은 적는 모양으로 구분해요. 숫자만 쓰면 <b>고객 최종가</b>(89000), %를 붙이면 <b>할인율</b>(15%), 앞에 -를 붙이면 <b>할인액</b>(-9000)이고, 할인율·할인액은 판매가 기준이에요. 상품마다 섞어 써도 돼요.</li>
+      <li>쿠폰 기간과 <b>브랜드</b>를 적습니다. 일반 행사는 시작·종료 날짜와 시간을 고르세요. 종료는 기본이 <b>시작과 같은 날 23:59</b>이고, 그 분의 끝(23:59:59)까지 적용돼요. 모바일라이브는 <b>방송일시와 방송 시간(분)</b>만 넣으면 쿠폰 기간이 방송 30분 전부터 방송 종료까지로 자동으로 잡혀요.</li>
+      <li>세일즈원 <b>쿠폰관리 &gt; 상품코드 쿠폰조회</b>에서 같은 상품코드를 조회(진행상태: 전체)하고, 표의 줄을 전부 복사해 <b>2번 칸</b>에 붙여넣습니다(머리글은 없어도 돼요). 지금 판매가와 이미 걸린 쿠폰을 보고 필요한 할인을 계산해요. 할인율(15%)이나 할인액(-9000)으로만 적었다면 이 칸은 비워도 돼요(최종가·마진 점검은 생략).</li>
+      <li>세일즈원 <b>상품관리 &gt; 상품 조회/수정</b>에서 같은 상품코드를 조회하고, 표의 줄을 복사해 <b>3번 칸</b>에 붙여넣습니다. 직매입은 당사 100%, 위수탁은 당사·협력사 반반으로 부담이 자동으로 정해져요. 이 칸은 <b>선택</b>이에요. 비워 두면 모두 당사 부담으로 계산해요.</li>
+      <li><b class="btn">쿠폰 만들기</b>를 누릅니다. 아래에 <b>만들 쿠폰</b>, 상품별 계산, <b>고객 최종가 미리보기</b>가 나와요. <b>차단</b>이 있으면 내용을 읽고 고친 뒤 다시 누르세요. 가격이 원하는 대로인지 꼭 한 번 보세요.</li>
+      <li>맨 아래 <b>④ 다음 단계</b> 카드의 <b class="btn">세일즈원 입력 코드 복사</b>를 누릅니다. 화면 위 ①~④ 단계 표시줄을 누르면 그 단계로 바로 이동해요.</li>
+      <li>세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 화면에서 F12 → Console에 붙여넣고 Enter. 화면 오른쪽 위에 <b>🤖 쿠폰 에이전트</b> 창이 열려요. 창이 세일즈원 버튼을 가리면 창의 <b class="btn">옮기기</b>로 왼쪽으로 옮길 수 있어요(고른 쪽을 기억해요).</li>
+      <li><b class="btn">남은 쿠폰 전부 등록</b>을 누르면 [추가] → 칸 채우기 → 저장 → 채널(인터넷·M커머스 + VOD 매장 일괄 추가, 1번에서 <b>VOD 전용 쿠폰</b>을 켰으면 VOD 매장만, <b>VOD 매장 제외</b>를 켰으면 인터넷·M커머스만) 넣기까지 쿠폰마다 차례로 하고, 새 쿠폰코드를 기록해요. 한 장씩 하려면 쿠폰별 <b class="btn">이 쿠폰만 등록</b>을 누르세요. 저장만 실패했을 때는 넣은 값 아래 <b class="btn">저장 다시 시도</b>로 이어서 할 수 있어요.</li>
+      <li>모든 쿠폰에 쿠폰코드가 기록되면 <b class="btn">상품-쿠폰 일괄 등록</b>을 누릅니다. 상품 일괄등록 탭에서 양식 엑셀을 올리고 [쿠폰 상품 일괄등록]까지 눌러 줘요. 중간에 <b>공헌이익 승인요청</b> 창이 뜨면 요청사유 '당사직매입 상품'을 골라 [요청]까지 알아서 눌러요. 직접 올리고 싶으면 <b class="btn">엑셀 받기</b>로 양식 파일만 받을 수도 있어요.</li>
+      <li>승인권자에게 <b>승인 요청</b>을 알립니다. (승인 전에는 쿠폰이 적용되지 않아요.)</li>
+      <li>다음 작업을 시작하기 전에 <b class="btn">쿠폰 내역 초기화</b>를 눌러 지난 내역을 지웁니다.</li>
+    </ol>
+
+    <h3>주의할 점</h3>
+    <ul>
+      <li>쿠폰이 도는 동안에는 세일즈원 화면을 클릭하거나 다른 탭으로 옮기지 마세요. 멈춰야 하면 창의 <b class="btn">닫기</b>를 누르세요.</li>
+      <li>칸 값이 계획과 다르면 저장하지 않고 멈춰요. 이유가 창에 적혀 있으니 읽어 보고, 필요하면 직접 고쳐 저장한 뒤 <b class="btn">직접 저장했어요 → 쿠폰코드 기록</b>으로 코드를 넣어 주세요. 잘못 기록된 코드는 <b class="btn">코드 고치기</b>로 바로잡을 수 있어요.</li>
+      <li>쿠폰 이름은 정해진 양식으로 자동으로 들어가요. 쿠폰설명 = <code>브랜드_날짜_쿠폰율/액_당사·반반</code>, 노출쿠폰명 = <code>브랜드 앱할인 쿠폰율/액</code>.</li>
+      <li>고객쿠폰(등록자 신지원·이진선·나희석, 쿠폰설명에 마이샵·매장 전용·리모콘·VIP가 들어간 쿠폰)은 계산에서 빼요. 더블쿠폰은 표에 표시가 없어서 2번 칸 아래 <b>고급 설정</b>의 <b>더블쿠폰 코드</b>에 직접 적어 주세요.</li>
+      <li><b>엔니튜드</b> 15% 쿠폰은 당사 10% / 협력사 5% 부담으로 만들어요. 1번 칸 아래 <b>고급 설정</b>의 엔니튜드 체크(기본 켜짐)를 끄면 다른 위수탁 상품처럼 반반(7.5% / 7.5%)이에요.</li>
+      <li>공헌이익이 마이너스가 되는 상품은 승인권자가 따로 승인해야 해요.</li>
+      <li>기간과 고급 설정은 이 PC에 자동으로 기억돼요. 상품코드·조회 결과·매입형태·브랜드 칸은 열 때마다 비어 있고, 회색 글씨는 예시일 뿐이니 칸을 눌러 새로 넣어 주세요.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="faq">
+    <h2>막히면</h2>
+    <ul>
+      <li><b>붙여넣기가 안 돼요</b> → 콘솔에 <code>allow pasting</code>을 먼저 입력하고 Enter, 다시 붙여넣기.</li>
+      <li><b>도구 창이 안 보여요</b> → 세일즈원 화면 오른쪽([옮기기]를 눌렀다면 왼쪽)을 확인해 주세요. 새로고침했다면 다시 붙여넣기.</li>
+      <li><b>F12가 안 열려요</b> → 회사 PC 설정으로 막혀 있을 수 있어요. 김지영님께 알려 주세요.</li>
+      <li><b>등록 중 멈췄어요</b> → 창에 적힌 이유를 읽고, 세일즈원에서 해당 쿠폰이 저장됐는지 확인한 뒤 이어서 진행.</li>
+      <li>그 밖의 문제는 창의 내용을 캡처해서 김지영님께 보내 주세요.</li>
+    </ul>
+  </section>
+  </main>
+<script>
+(() => {
+  const nav = document.querySelector('nav');
+  const links = [...nav.querySelectorAll('a')];
+  const secs = links.map((a) => document.getElementById(a.getAttribute('href').slice(1)));
+  links.forEach((a, i) => a.addEventListener('click', (e) => {
+    e.preventDefault();
+    secs[i].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    try { history.replaceState(null, '', a.getAttribute('href')); } catch (err) {}
+  }));
+  const update = () => {
+    nav.classList.toggle('stuck', nav.getBoundingClientRect().top <= 0 && scrollY > 0);
+    let cur = -1;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top <= 100) cur = i; });
+    if (innerHeight + scrollY >= document.documentElement.scrollHeight - 4) cur = secs.length - 1;
+    links.forEach((a, i) => a.classList.toggle('on', i === cur));
+    if (cur >= 0) { const a = links[cur]; if (a.offsetLeft < nav.scrollLeft || a.offsetLeft + a.offsetWidth > nav.scrollLeft + nav.clientWidth) nav.scrollTo({ left: a.offsetLeft - 16, behavior: 'smooth' }); }
+  };
+  addEventListener('scroll', update, { passive: true }); update();
+})();
+document.querySelectorAll('button.copy').forEach((b) => {
+  const label = b.textContent;
+  b.addEventListener('click', async () => {
+    const code = JSON.parse(document.getElementById(b.dataset.code).textContent);
+    let ok = false;
+    try { await navigator.clipboard.writeText(code); ok = true; } catch (e) {
+      const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
+    }
+    b.textContent = ok ? '복사했어요! 세일즈원 콘솔에 붙여넣으세요' : '복사 실패: 공유 폴더의 txt 파일을 열어 복사해 주세요';
+    b.classList.toggle('done', ok);
+    setTimeout(() => { b.textContent = label; b.classList.remove('done'); }, 3000);
+  });
+});
+</script>
+</body>
+</html>
