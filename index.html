@@ -134,6 +134,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
       </li>
       <li><label class="field"><span>브랜드</span> <input id="prefix" spellcheck="false" placeholder="예: 와니" style="width:120px"></label></li>
       <li><label class="field"><input type="checkbox" id="vod"> <span style="color:inherit">VOD 전용 쿠폰</span></label> <span class="muted">채널에 인터넷·M커머스는 넣지 않고 [VOD 매장 일괄 추가]만 눌러 저장해요</span></li>
+      <li><label class="field"><input type="checkbox" id="novod"> <span style="color:inherit">VOD 매장 제외</span></label> <span class="muted">VOD 매장을 안 쓰는 팀용이에요. 채널에 인터넷·M커머스만 넣고 [VOD 매장 일괄 추가]는 안 눌러요</span></li>
     </ul>
     <details class="adv">
       <summary>고급 설정 (평소에는 안 건드려도 돼요)</summary>
@@ -954,6 +955,7 @@ function generatePlan(targets, currentRows, opts = {}) {
       의도판매가: oneTarget ? g.items[0].price : '',
       의도최종결제가: oneTarget ? g.items[0].target : '',
       ...(o.vod ? { VOD: true } : {}), // VOD 전용 쿠폰 (2026-10-16): 에이전트가 채널에 [VOD 매장 일괄 추가]만 누른다
+      ...(!o.vod && o.noVod ? { VOD제외: true } : {}), // VOD 매장 제외 (2026-10-20): 인터넷·M커머스만 넣고 [VOD 매장 일괄 추가]는 안 누른다
     });
     for (const x of g.items) {
       if (x.noPrice) {
@@ -1080,7 +1082,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-20a'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-20b'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1132,7 +1134,7 @@ $('make').addEventListener('click', () => {
   const info = productInfoFrom(prodRows);
   lastInfo = { names: new Map(), deals: deals };
   if (!current.length && !info.size && targets.some((t) => t.target != null)) { alert('최종가로 적은 상품이 있어서 2번(조회 결과) 또는 3번이 필요해요. 2번을 비우려면 가격 대신 "10%"나 "-9000"처럼 할인을 적어주세요.'); return; }
-  plan = generatePlan(targets, current, { dealTypes: deals, productInfo: info, live: $('live').checked, broadcast: DT.broadcast(), liveMinutes: +$('liveMin').value || 60, start: DT.start(), end: DT.end(), partnerShare: (+$('share').value || 0) / 100, annitude1005: $('anni').checked, prefix: $('prefix').value.trim(), vod: $('vod').checked });
+  plan = generatePlan(targets, current, { dealTypes: deals, productInfo: info, live: $('live').checked, broadcast: DT.broadcast(), liveMinutes: +$('liveMin').value || 60, start: DT.start(), end: DT.end(), partnerShare: (+$('share').value || 0) / 100, annitude1005: $('anni').checked, prefix: $('prefix').value.trim(), vod: $('vod').checked, noVod: $('novod').checked });
   $('genout').style.display = 'block';
   $('gencoupons').innerHTML = '<tr><th>계획ID</th><th>쿠폰설명</th><th>노출쿠폰명</th><th>기간</th><th>할인(당사/협력사)</th><th>최소판매가</th><th>상품 수</th></tr>' +
     (plan.plannedCoupons.length ? plan.plannedCoupons.map((c) => `<tr><td>${esc(c['계획ID'])}</td><td>${esc(c['쿠폰설명'])}</td><td>${esc(c['노출쿠폰명'])}</td><td>${esc(c['시작일시'])} ~ ${esc(c['종료일시'])}</td><td class="num">${c['쿠폰타입'] === '정률할인' ? `${c['안내할인율']}% (${c['당사적용율/액']}%/${c['협력사적용율/액']}%)<br><span class="muted">최대 ${won(c['최대할인금액'])}</span>` : `${won(c['최대할인금액'])} (${won(c['당사적용율/액'])}/${won(c['협력사적용율/액'])})`}</td><td class="num">${won(c['사용가능최소판매가격'])}</td><td class="num">${plan.mappings.filter((m) => m['계획ID'] === c['계획ID']).length}</td></tr>`).join('') : '<tr><td colspan="7" class="muted">만들 쿠폰이 없습니다. 아래 상품별 계산을 확인하세요.</td></tr>');
@@ -1243,6 +1245,9 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
   let saved = null, mine = null;
   try { saved = JSON.parse(localStorage.getItem(KEY)); mine = JSON.parse(localStorage.getItem(DKEY)); } catch {}
   if (!saved) saved = mine || {};
+  // VOD 전용과 VOD 매장 제외는 같이 켤 수 없다 (2026-10-20)
+  $('vod').addEventListener('change', () => { if ($('vod').checked) $('novod').checked = false; });
+  $('novod').addEventListener('change', () => { if ($('novod').checked) $('vod').checked = false; });
   for (const el of fields) {
     const v = saved[keyOf(el)];
     if (v === undefined) continue;
@@ -1277,7 +1282,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-20a';
+  const VERSION = '2026-10-20b';
   if (window.__cpnFiller?.v === VERSION) { window.__cpnFiller.open(PLAN); return; }
   // 예전 버전이 열려 있으면(새로고침 없이 새 코드를 붙여넣은 경우) 닫고 새 버전으로 연다
   if (window.__cpnFiller) {
@@ -1607,7 +1612,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
         <div class="m" style="margin:3px 0 0 28px">${esc(c.쿠폰타입)} · 당사 ${esc(c['당사적용율/액'])} / 협력사 ${esc(c['협력사적용율/액'])} · 상품 ${n}개<br>${esc(c.시작일시)} ~ ${esc(c.종료일시)}</div>
         <div class="row">${code ? `<span class="ok">저장됨 · 쿠폰코드 ${esc(code)}</span> <button class="g" data-fix="${esc(c.계획ID)}">코드 고치기</button> <button class="g" data-undo="${esc(c.계획ID)}">취소</button>${fills[c.계획ID] ? ` <button class="g" data-show="${esc(c.계획ID)}">${shown[c.계획ID] ? '▲ 넣은 값 접기' : '▼ 넣은 값 보기'}</button>` : ''}`
           : `<button data-reg="${esc(c.계획ID)}" ${busy ? 'disabled' : ''}>이 쿠폰만 등록</button>`}</div>
-        ${code ? (chans[c.계획ID]?.ok ? `<div class="note ok">✓ 채널 ${c.VOD ? 'VOD 매장만' : '인터넷·M커머스·VOD 매장'} 넣음${chans[c.계획ID].why ? ' (' + esc(chans[c.계획ID].why) + ')' : ''}</div>`
+        ${code ? (chans[c.계획ID]?.ok ? `<div class="note ok">✓ 채널 ${c.VOD ? 'VOD 매장만' : c.VOD제외 ? '인터넷·M커머스 (VOD 매장 제외)' : '인터넷·M커머스·VOD 매장'} 넣음${chans[c.계획ID].why ? ' (' + esc(chans[c.계획ID].why) + ')' : ''}</div>`
           : `<div class="note ${chans[c.계획ID] ? 'bad' : 'm'}">${chans[c.계획ID] ? esc(chans[c.계획ID].why) : '채널(인터넷·M커머스)이 아직 안 들어갔어요.'} <button class="g" data-chan="${esc(c.계획ID)}" ${busy ? 'disabled' : ''}>채널 넣기</button></div>`) : ''}
         ${code && fills[c.계획ID] && shown[c.계획ID] ? rowsTable(fills[c.계획ID]) : ''}
         ${!code && current === c.계획ID && lastResult ? (() => {
@@ -1639,8 +1644,8 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     $('#resave')?.addEventListener('click', async () => { if (busy || !current) return; busy = true; try { status = '저장 다시 시도 중…'; render(); await finishOne(current, '1/1'); } catch (e) { status = `도우미 오류로 멈췄어요: ${e && e.message ? e.message : e}`; } finally { busy = false; render(); } });
     root.querySelectorAll('[data-show]').forEach((b) => (b.onclick = () => { shown[b.dataset.show] = !shown[b.dataset.show]; render(); }));
     root.querySelectorAll('[data-chan]').forEach((b) => (b.onclick = async () => {
-      if (busy) return; busy = true; const id = b.dataset.chan; const vod = !!plan.coupons.find((x) => x.계획ID === id)?.VOD; status = vod ? '채널(VOD 매장) 넣는 중…' : '채널(인터넷·M커머스) 넣는 중…'; render();
-      try { const ch = await addChannels(codes()[id], vod); const chs = store.get('channels', {}); chs[id] = ch; store.set('channels', chs); status = ch.ok ? '채널 넣음' : '채널을 못 넣었어요.'; }
+      if (busy) return; busy = true; const id = b.dataset.chan; const cp = plan.coupons.find((x) => x.계획ID === id); const vod = !!cp?.VOD; status = vod ? '채널(VOD 매장) 넣는 중…' : '채널(인터넷·M커머스) 넣는 중…'; render();
+      try { const ch = await addChannels(codes()[id], vod, !!cp?.VOD제외); const chs = store.get('channels', {}); chs[id] = ch; store.set('channels', chs); status = ch.ok ? '채널 넣음' : '채널을 못 넣었어요.'; }
       catch (e) { status = `채널 추가 중 오류: ${e.message}`; }
       finally { busy = false; render(); }
     }));
@@ -1973,10 +1978,10 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     const fl = store.get('fills', {}); fl[id] = lastResult.rows.map(({ key, value, picked, ok, why }) => ({ key, value, picked, ok, why })); store.set('fills', fl);
     // 채널 자동 넣기 (실제 화면 구조 확인 2026-10-12): 실패해도 쿠폰 저장은 그대로 두고 줄에 알려 준다. [채널 넣기] 버튼으로 다시 시도 가능
     if (AUTO_CHANNEL) {
-      const vod = !!plan.coupons.find((x) => x.계획ID === id)?.VOD;
+      const cp = plan.coupons.find((x) => x.계획ID === id); const vod = !!cp?.VOD; const noVod = !!cp?.VOD제외;
       status = `${label} 저장됨 (${r.code}), 채널(${vod ? 'VOD 매장' : '인터넷·M커머스'}) 넣는 중…`; render();
       await sleep(600);
-      let ch; try { ch = await addChannels(r.code, vod); } catch (e) { ch = { ok: false, why: `채널 추가 중 오류: ${e.message}` }; }
+      let ch; try { ch = await addChannels(r.code, vod, noVod); } catch (e) { ch = { ok: false, why: `채널 추가 중 오류: ${e.message}` }; }
       const chs = store.get('channels', {}); chs[id] = ch; store.set('channels', chs);
     } else {
       await sleep(600); const tab = textEl(/^사용\(불\)가능채널$/)[0]; if (tab) press(tab);
@@ -2070,7 +2075,8 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     return null;
   }
   // vodOnly=true (VOD 전용 쿠폰, 사용자 요청 2026-10-16): 인터넷·M커머스는 넣지 않고 [VOD 매장 일괄 추가]만 누른 뒤 [저장]
-  async function addChannels(code, vodOnly = false) {
+  // noVod=true (VOD 매장 제외, 사용자 요청 2026-10-20): 인터넷·M커머스만 넣고 [VOD 매장 일괄 추가]는 누르지 않는다
+  async function addChannels(code, vodOnly = false, noVod = false) {
     // 저장 직후엔 목록이 다시 조회되며 쿠폰상세가 바뀌는 중일 수 있어 기다리고, 안 열리면 목록에서 그 줄을 누르거나 쿠폰코드로 조회한다
     const opened = () => !code || field('cpnNo')?.value?.trim() === code;
     if (!(await waitPressing(opened, 5000))) { if (clickGridRow(code)) await waitPressing(opened, 2500); }
@@ -2101,7 +2107,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     const already = have();
     const need = vodOnly ? [] : CHANNELS.filter((n) => !already.includes(n));
     // 인터넷·M커머스 말고도 줄이 더 있으면 [VOD 매장 일괄 추가]는 이미 한 것으로 본다 (다시 누르면 줄이 겹침). VOD 전용이면 줄이 하나라도 있으면 한 것
-    const vodDone = dataRows().filter((tr) => [...tr.cells].some((c) => cellVal(c))).length > (vodOnly ? 0 : CHANNELS.length);
+    const vodDone = noVod || dataRows().filter((tr) => [...tr.cells].some((c) => cellVal(c))).length > (vodOnly ? 0 : CHANNELS.length);
     if (!need.length && vodDone) return { ok: true, why: '이미 들어 있음' };
     // 표(RealGrid)의 내부 API를 React 속성에서 찾는다 (setValue·getColumns가 있는 객체). 있으면 값을 바로 넣는다
     const gridRoot = [...document.querySelectorAll('.rg-root')].find((g) => vis(g) && (tab.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING)) || null;
