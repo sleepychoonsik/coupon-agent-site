@@ -1,0 +1,315 @@
+// 세일즈원 쿠폰관리 > 쿠폰등록 화면의 쿠폰목록에 보이는 쿠폰을 차례로 승인한다 (승인자 PC, 승인자 로그인).
+// 계획과 비교하지 않는다 (사용자 결정 2026-10-12: 등록 에이전트가 계획대로 만들기 때문).
+// 순서: 목록에서 줄 선택 → [승인] → 확인창이 뜨면 바로 [확인] (완료 창이면 다음 쿠폰으로). 시작 전에 창에서 승인할 쿠폰을 고른다.
+(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const vis = (el) => !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+  const press = (b) => {
+    for (const t of ['pointerdown', 'mousedown', 'pointerup', 'mouseup']) b.dispatchEvent(new MouseEvent(t, { bubbles: true, cancelable: true, view: window, button: 0 }));
+    b.click();
+  };
+  // 목록 표(RealGrid)는 그냥 누름 신호를 무시한다. 진짜 마우스처럼 좌표·포인터 정보를 실어 누른다
+  // (2026-10-14 실제: 첫 두 장 뒤로 줄을 눌러도 쿠폰상세가 안 바뀜. 등록 에이전트에서 같은 방법으로 해결됨)
+  function fireMouse(el, x, y) {
+    const base = { bubbles: true, cancelable: true, composed: true, view: window, button: 0, clientX: x, clientY: y, screenX: x, screenY: y, detail: 1 };
+    const pe = (t, extra) => { try { el.dispatchEvent(new PointerEvent(t, { ...base, pointerId: 1, pointerType: 'mouse', isPrimary: true, width: 1, height: 1, pressure: t === 'pointerdown' ? 0.5 : 0, ...extra })); } catch (e) { el.dispatchEvent(new MouseEvent(t, { ...base, ...extra })); } };
+    const me = (t, extra) => el.dispatchEvent(new MouseEvent(t, { ...base, ...extra }));
+    pe('pointerover', { buttons: 0 }); pe('pointerenter', { bubbles: false, buttons: 0 }); me('mouseover', { buttons: 0 }); me('mousemove', { buttons: 0 });
+    pe('pointerdown', { buttons: 1 }); me('mousedown', { buttons: 1 });
+    pe('pointerup', { buttons: 0 }); me('mouseup', { buttons: 0 }); me('click', { buttons: 0 });
+  }
+  // 칸 가운데 좌표에 있는 요소를 눌러 그 줄을 연다 (이 창은 잠깐 빼고 찾는다)
+  function pressCell(cell) {
+    const r = cell.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    box.style.setProperty('pointer-events', 'none', 'important');
+    const el = document.elementFromPoint(x, y) || cell;
+    box.style.removeProperty('pointer-events');
+    fireMouse(el, x, y);
+    if (el !== cell && !el.contains(cell) && !cell.contains(el)) fireMouse(cell, x, y);
+  }
+  const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+  function typeInto(el, v) {
+    el.focus(); valueSetter.call(el, String(v));
+    el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  // 위쪽 검색 영역의 쿠폰코드 칸과 [조회] (쿠폰상세 안의 쿠폰코드 칸은 빼고)
+  const searchInput = () => {
+    const det = document.querySelector('input[name="cpnNo"]');
+    const byName = [...document.querySelectorAll('input[name="cpnNos"]')].find(vis);
+    if (byName) return byName;
+    for (const l of document.body.querySelectorAll('th, td, label, span, div, p')) {
+      if (!vis(l) || box.contains(l) || l.children.length > 3 || l.textContent.replace(/\s+/g, '') !== '쿠폰코드') continue;
+      for (let n = l, k = 0; n && k < 4; n = n.parentElement, k++) {
+        const near = n.nextElementSibling?.querySelector('input:not([type=checkbox]):not([type=radio]):not([type=hidden])');
+        if (near && near !== det && vis(near) && !near.readOnly && !near.disabled) return near;
+      }
+    }
+    return null;
+  };
+  const searchButton = () => [...document.querySelectorAll('button')].find((b) => vis(b) && !box.contains(b) && b.textContent.trim() === '조회') || null;
+  const onTop = (b) => {
+    const r = b.getBoundingClientRect();
+    const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return !!e && (b === e || b.contains(e));
+  };
+
+  // ---------- 창 (오른쪽 아래) ----------
+  // 2026-10-13 사용자 요청으로 보기 쉽게 개선: 시작 전 쿠폰을 골라 빼기, 진행 막대, 쿠폰별 결과, 자세한 기록은 접어 둠
+  document.getElementById('cpn-approve-all')?.remove();
+  const box = document.createElement('div');
+  box.id = 'cpn-approve-all';
+  const side = (() => { try { return localStorage.getItem('cpnApproveAll.side') || 'right'; } catch { return 'right'; } })();
+  // 세일즈원 화면의 CSS가 창에 섞이지 않게(2026-10-13 실제: 접으면 창이 하얗게 됨) 창 내용은 섀도 DOM 안에 둔다
+  const pos = (k, v) => box.style.setProperty(k, v, 'important');
+  pos('position', 'fixed'); pos(side, '16px'); pos('bottom', '16px'); pos('z-index', '2147483647'); pos('width', '340px');
+  const root = box.attachShadow({ mode: 'open' });
+  root.innerHTML = `<style>
+    :host{all:initial}
+    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:10px;font:13px/1.45 "Malgun Gothic",sans-serif;box-shadow:0 6px 24px rgba(0,0,0,.18);overflow:hidden}
+    *{box-sizing:border-box;font:inherit}
+    .hd{display:flex;align-items:center;gap:4px;padding:8px 10px;background:#2d3748;color:#fff}
+    .hd b{flex:1;font-weight:700}
+    .hd button{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:5px;padding:1px 7px;cursor:pointer;font-size:12px}
+    .bd{padding:10px}
+    .list{max-height:240px;overflow-y:auto;overflow-x:hidden}
+    .btn{border:0;border-radius:6px;padding:7px 12px;cursor:pointer;font-weight:700}
+    .main{background:#e6007e;color:#fff;width:100%}
+    .main:disabled{background:#c9ced6;cursor:default}
+    .sub{background:#eef0f3;color:#1f2328}
+    .row{display:flex;align-items:center;gap:6px;padding:5px 2px;border-bottom:1px solid #eef0f3}
+    .row .c{font-weight:700;min-width:76px}
+    .row .d{flex:1;color:#57606a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+    .row .s{font-size:12px;white-space:nowrap}
+    .ok{color:#1a7f37} .bad{color:#cf222e} .run{color:#0969da}
+    .bar{height:8px;background:#eef0f3;border-radius:4px;margin:6px 0 10px;overflow:hidden}
+    .bar i{display:block;height:100%;background:#e6007e;width:0;transition:width .3s}
+    .msg{margin-bottom:8px}
+    details{margin-top:8px;color:#57606a;font-size:12px}
+    pre{white-space:pre-wrap;margin:4px 0 0;max-height:160px;overflow:auto;font-size:11px}
+  </style>
+  <div class="win"><div class="hd"><b>🤖 쿠폰 전체 승인 <span id="cpn-mini" style="font-weight:400"></span></b><button id="cpn-side">옮기기</button><button id="cpn-min">▲접기</button><button id="cpn-close">닫기</button></div>
+  <div class="bd" id="cpn-body"></div></div>`;
+  document.body.appendChild(box);
+  const $ = (q) => root.querySelector(q);
+  const bodyEl = $('#cpn-body');
+  let stop = false, running = false;
+  const logLines = [];
+  const log = (s) => { logLines.push(`${new Date().toTimeString().slice(0, 8)} ${s}`); const pre = $('#cpn-log'); if (pre) { pre.textContent = logLines.join('\n'); pre.scrollTop = 1e9; } };
+  $('#cpn-close').onclick = () => { if (running && !confirm('승인 중이에요. 지금 쿠폰까지만 하고 멈출까요?')) return; stop = true; box.remove(); };
+  // 접기: 내용을 숨기고 창을 머리줄만 남게 줄인다 (진행 숫자는 머리줄에 보임)
+  let folded = false;
+  $('#cpn-min').onclick = () => {
+    folded = !folded;
+    bodyEl.style.setProperty('display', folded ? 'none' : 'block', 'important');
+    $('#cpn-side').style.display = folded ? 'none' : '';
+    $('#cpn-min').textContent = folded ? '▼열기' : '▲접기';
+  };
+  $('#cpn-side').onclick = () => {
+    const now = box.style.right ? 'right' : 'left', next = now === 'right' ? 'left' : 'right';
+    box.style.removeProperty(now); pos(next, '16px');
+    try { localStorage.setItem('cpnApproveAll.side', next); } catch {}
+  };
+
+  // 쿠폰목록의 쿠폰코드 칸 (9자리 숫자만 있는 칸)
+  const codeCell = (code) => [...document.body.querySelectorAll('*')].find((x) => x.children.length === 0 && vis(x) && !box.contains(x) && x.textContent.trim() === code);
+  const listCodes = () => [...new Set([...document.body.querySelectorAll('*')]
+    .filter((x) => x.children.length === 0 && vis(x) && !box.contains(x) && x.tagName !== 'INPUT' && /^\d{9}$/.test(x.textContent.trim()))
+    .map((x) => x.textContent.trim()))];
+  // 같은 줄의 쿠폰설명 (숫자가 아닌 첫 칸)
+  const descOf = (code) => {
+    const tr = codeCell(code)?.closest('tr');
+    if (!tr) return '';
+    return [...tr.cells].map((td) => td.textContent.trim()).find((t) => t && t !== code && /[가-힣A-Za-z]/.test(t) && t.length > 3) || '';
+  };
+  const openedCode = () => [...document.querySelectorAll('input[name="cpnNo"]')].find(vis)?.value?.trim() || '';
+  const approveBtn = () => [...document.querySelectorAll('button')].find((b) => vis(b) && !box.contains(b) && b.textContent.trim() === '승인');
+  const okButtons = () => [...document.querySelectorAll('button, [role=button], input[type=button]')]
+    .filter((b) => vis(b) && !box.contains(b) && /^(확인|예|OK)$/.test((b.value || b.textContent).trim()));
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // 목록 표는 보이는 줄만 그린다(2026-10-13 실제: 23건 중 8줄). 그래서 처음에 다 읽지 않고, 매번 보이는 줄에서 아직 안 한 쿠폰을
+  // 고르고, 없으면 표를 아래로 내려 다음 줄을 보이게 한다. 승인 뒤 목록이 새로 떠도 그때 보이는 줄에서 다시 고른다.
+  const totalOnPage = () => { const m = /총\s*([\d,]+)\s*건/.exec(document.body.innerText); return m ? Number(m[1].replace(/,/g, '')) : 0; };
+  const gridRoot = () => { const c0 = listCodes()[0]; return (c0 && codeCell(c0)?.closest('.rg-root')) || null; };
+  async function scrollGrid(dir) {
+    const g = gridRoot(); if (!g) return false;
+    const before = listCodes().join();
+    for (const e of [g, ...g.querySelectorAll('*')]) {
+      if (e.scrollHeight > e.clientHeight + 5 && /auto|scroll/.test(getComputedStyle(e).overflowY)) {
+        e.scrollTop = dir === 'top' ? 0 : e.scrollTop + e.clientHeight * 0.8; e.dispatchEvent(new Event('scroll'));
+      }
+    }
+    if (listCodes().join() === before) {
+      const body = g.querySelector('.rg-body') || g, r = body.getBoundingClientRect();
+      body.dispatchEvent(new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaMode: 0, deltaY: dir === 'top' ? -1e5 : r.height * 0.8, clientX: r.left + r.width / 2, clientY: r.top + r.height / 2 }));
+    }
+    await sleep(300);
+    return listCodes().join() !== before;
+  }
+  // 보이는 줄에서 아직 안 한 첫 쿠폰. 없으면 아래로 내려 보고, 끝까지 없으면 맨 위에서 한 번 더 본다
+  // 승인 직후엔 목록을 다시 조회하느라 표가 잠깐 비어 있다 (2026-10-13 실제: 이때 끝난 줄 알고 1건만 하고 멈춤). 줄이 다시 뜰 때까지 기다린다
+  async function waitList(ms) { for (let t = 0; t < ms && !listCodes().length && !(t > 1500 && totalOnPage() === 0 && /총\s*0\s*건/.test(document.body.innerText)); t += 200) await sleep(200); await sleep(300); return listCodes().length > 0; }
+  async function nextCode() {
+    const fresh = () => listCodes().find((x) => !seen.has(x));
+    for (let round = 0; round < 2; round++) {
+      if (!(await waitList(10000))) return null;
+      for (let k = 0; k < 60; k++) { const c = fresh(); if (c) return c; if (!(await scrollGrid(1))) break; }
+      await scrollGrid('top');
+      const c = fresh(); if (c) return c;
+      // 총 건수보다 적게 했으면 목록이 덜 떴을 수 있으니 한 번 더 본다
+      if (seen.size >= startTotal) return null;
+      await sleep(1500);
+    }
+    return null;
+  }
+  const BAD = /동일할 수 없|할 수 없|불가|실패|오류|에러|권한|없습니다|않습니다|확인해 ?주/;
+  // 이 쿠폰이 0.5초 동안 그대로 열려 있을 때까지 기다린다. 승인 뒤 목록이 다시 조회되면 화면이 첫 줄을 스스로 열 수 있어서
+  // 다른 쿠폰으로 바뀌면 다시 누른다. 그 사이 뜨는 창(예: '변경된 데이터가 존재합니다…')은 [확인]을 눌러 준다
+  async function waitOpened(code, ms, again) {
+    const before = new Set(okButtons());
+    let stable = 0;
+    for (let t = 0; t < ms && stable < 500; t += 100) {
+      await sleep(100);
+      const ok = okButtons().find((x) => !before.has(x) && onTop(x));
+      if (ok) { log('  창: ' + dialogText(ok) + ' → 확인'); press(ok); before.add(ok); stable = 0; continue; }
+      if (openedCode() === code) stable += 100;
+      else { stable = 0; if (again && t % 1000 === 900) again(); }
+    }
+    return openedCode() === code;
+  }
+  async function openByRow(code) {
+    if (openedCode() === code && (await waitOpened(code, 1000))) return true;
+    const cell = codeCell(code);
+    if (!cell) return false;
+    cell.scrollIntoView({ block: 'center' });
+    await sleep(100);
+    pressCell(cell);
+    return waitOpened(code, 3000, () => { const c2 = codeCell(code); if (c2) pressCell(c2); });
+  }
+  let filtered = false; // 쿠폰코드로 조회해 둔 상태면 다음 쿠폰 전에 검색칸을 비우고 다시 조회한다
+  async function openBySearch(code) {
+    const inp = searchInput(), btn = searchButton();
+    if (!inp || !btn) { log('  위쪽 쿠폰코드 칸이나 [조회]를 못 찾았어요'); return false; }
+    typeInto(inp, code); filtered = true;
+    await sleep(200); press(btn);
+    // 한 건만 조회되면 화면이 스스로 열 수 있다. 안 열리면 그 줄을 누른다
+    for (let t = 0; t < 8000; t += 200) {
+      await sleep(200);
+      if (openedCode() === code) break;
+      const c = codeCell(code);
+      if (c && t >= 1000 && t % 1000 === 0) pressCell(c);
+    }
+    return waitOpened(code, 3000, () => { const c2 = codeCell(code); if (c2) pressCell(c2); });
+  }
+  async function clearSearch() {
+    if (!filtered) return;
+    filtered = false;
+    const inp = searchInput(), btn = searchButton();
+    if (!inp || !btn) return;
+    typeInto(inp, ''); await sleep(200); press(btn);
+    log('  쿠폰코드 칸을 비우고 다시 조회했어요');
+    await sleep(800);
+  }
+  function dialogText(ok) {
+    let msg = '';
+    for (let n = ok.parentElement, k = 0; n && n !== document.body && k < 6 && !msg; n = n.parentElement, k++) {
+      const c = n.cloneNode(true); c.querySelectorAll('button, [role=button]').forEach((x) => x.remove());
+      const tx = c.textContent.replace(/\s+/g, ' ').trim();
+      if (tx.length > 150) break;
+      if (tx.length > 3) msg = tx;
+    }
+    return msg;
+  }
+  const seen = new Set();
+  let startTotal = 0; // 시작할 때 '총 N건' (승인한 줄이 빠지며 화면 숫자는 줄어든다)
+  const items = [];
+  const ICON = { '': '', run: '⏳ 승인 중', ok: '✅ 승인됨', skip: '⚠️ 건너뜀' };
+  function render() {
+    const total = Math.max(startTotal, items.length);
+    const fin = items.filter((x) => x.st === 'ok' || x.st === 'skip').length;
+    let h = '';
+    if (!items.length && !running) {
+      const n = totalOnPage() || listCodes().length;
+      if (!n) { bodyEl.innerHTML = '<div class="msg bad">쿠폰목록에서 쿠폰코드를 못 찾았어요.<br>결재상태 <b>신규</b>로 조회한 뒤 다시 붙여넣어 주세요.</div>'; return; }
+      h += `<div class="msg">쿠폰목록 <b>총 ${n}건</b>을 위에서부터 차례로 <b>모두</b> 승인해요.<br><span style="color:#57606a;font-size:12px">결재상태가 <b>신규</b>로 조회돼 있는지 확인해 주세요.</span></div>
+        <button class="btn main" id="cpn-go">${n}건 모두 승인 시작</button>`;
+    } else {
+      const okN = items.filter((x) => x.st === 'ok').length, skipN = items.filter((x) => x.st === 'skip').length;
+      h += `<div class="msg">${running ? `승인 중… <b>${fin}/${total}</b>` : `<b>끝났어요.</b> ${okN}건 승인${skipN ? `, <span class="bad">${skipN}건 건너뜀</span>` : ''}`}</div>
+        <div class="bar"><i style="width:${total ? Math.min(100, Math.round((fin / total) * 100)) : 0}%"></i></div>`;
+      h += '<div class="list">';
+      for (const x of [...items].reverse()) {
+        h += `<div class="row"><span class="c">${esc(x.code)}</span><span class="d" title="${esc(x.desc)}">${esc(x.desc)}</span>
+          <span class="s ${x.st === 'ok' ? 'ok' : x.st === 'skip' ? 'bad' : 'run'}" title="${esc(x.why)}">${ICON[x.st]}</span></div>`;
+        if (x.st === 'skip' && x.why) h += `<div class="bad" style="font-size:12px;padding:2px 0 4px 4px">${esc(x.why)}</div>`;
+      }
+      h += '</div>';
+      if (running) h += '<div style="margin-top:10px"><button class="btn sub" id="cpn-stop" style="width:100%">멈추기 (지금 쿠폰까지만)</button></div>';
+    }
+    h += `<details><summary>자세한 기록</summary><pre id="cpn-log">${esc(logLines.join('\n'))}</pre></details>`;
+    bodyEl.innerHTML = h;
+    $('#cpn-mini').textContent = items.length ? `${fin}/${total}` : '';
+    if ($('#cpn-go')) $('#cpn-go').onclick = () => run();
+    if ($('#cpn-stop')) $('#cpn-stop').onclick = () => { stop = true; $('#cpn-stop').textContent = '멈추는 중…'; $('#cpn-stop').disabled = true; log('멈추기 누름'); };
+  }
+  render();
+
+  async function run() {
+  startTotal = totalOnPage() || listCodes().length;
+  running = true; render();
+  // 승인하는 동안 브라우저 기본 확인창은 [확인]으로 처리
+  const nat = { alert: window.alert, confirm: window.confirm };
+  window.alert = (m) => log('  창: ' + m);
+  window.confirm = (m) => { log('  창: ' + m + ' → 확인'); return true; };
+  try {
+    for (let i = 0; i < 1000; i++) {
+      if (stop) break;
+      await clearSearch();
+      const code = await nextCode();
+      if (!code) break;
+      seen.add(code);
+      const it = { code, desc: descOf(code), st: 'run', why: '' };
+      items.push(it);
+      const skip = (why) => { it.st = 'skip'; it.why = why; log('  ' + why); render(); };
+      render();
+      log(`${i + 1}. ${code}`);
+      // 1) 목록 줄을 눌러 연다 2) 안 열리면 위쪽 쿠폰코드 칸에 이 코드를 넣고 [조회]해서 연다
+      let opened = await openByRow(code);
+      if (!opened && !stop) { log('  줄을 눌러도 안 열려서 쿠폰코드로 조회해요'); opened = await openBySearch(code); }
+      if (!opened) { skip('쿠폰상세에 안 열렸어요'); continue; }
+      const b = approveBtn();
+      if (!b) { skip('[승인] 버튼을 못 찾아서 멈췄어요'); break; }
+      if (b.disabled || b.getAttribute('aria-disabled') === 'true') { skip('[승인]이 꺼져 있어요 (이미 승인됐거나 권한 없음)'); continue; }
+      const before = new Set(okButtons());
+      if (openedCode() !== code) { skip('누르기 직전에 다른 쿠폰이 열려서 건너뛰었어요'); continue; }
+      press(b);
+      let oks = 0, err = '';
+      for (let round = 0; round < 3; round++) {
+        // 확인창이 뜨면 바로 누른다 (사용자 요청 2026-10-12). 첫 창은 최대 5초, 다음 창은 최대 3초 기다린다
+        let ok = null;
+        for (let w = 0; w < (round ? 3000 : 5000) && !ok; w += 100) {
+          await sleep(100);
+          ok = okButtons().find((x) => !before.has(x) && onTop(x)) || null;
+        }
+        if (!ok) break;
+        await sleep(100); // 창 글자가 다 그려지도록 잠깐
+        const msg = dialogText(ok);
+        log('  창: ' + msg + ' → 확인');
+        press(ok); oks++; before.add(ok);
+        // 승인이 안 된 창 (2026-10-14 실제: '등록자와 승인자는 동일할 수 없습니다.' 를 승인으로 셌음)
+        if (BAD.test(msg) && !/하시겠/.test(msg)) { err = msg; break; }
+        // '승인되었습니다' 같은 완료 창이면 다음 창을 기다리지 않는다 (사용자 요청 2026-10-13: 확인 → 다음 승인 사이 줄이기)
+        if (/되었|완료/.test(msg) && !/하시겠/.test(msg)) break;
+      }
+      // 목록이 다시 조회되어 승인한 줄이 빠질 때까지만 기다린다 (최대 1.5초)
+      if (err) { skip('승인 안 됨: ' + err); continue; }
+      if (oks) for (let w = 0; w < 1500 && codeCell(code); w += 100) await sleep(100);
+      if (oks) { it.st = 'ok'; log('  승인 눌렀어요'); render(); } else skip('확인창이 안 떴어요. 화면을 확인해 주세요');
+    }
+  } catch (e) { log('오류로 멈췄어요: ' + (e && e.message ? e.message : e)); }
+  finally { window.alert = nat.alert; window.confirm = nat.confirm; try { await clearSearch(); } catch {} running = false; }
+  for (const x of items) if (x.st === 'run') { x.st = 'skip'; x.why = x.why || '멈춰서 안 했어요'; }
+  log('끝');
+  render();
+  }
+})();
