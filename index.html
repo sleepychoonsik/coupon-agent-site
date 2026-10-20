@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>🤖 쿠폰 에이전트 - 쿠폰 사전검증</title>
 <style>
-:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2329;--sub:#5b6570;--line:#dfe3e8;--accent:#e6005a;--accent-ink:#fff;--soft:#fff0f5;--block:#c62828;--block-bg:#fdecec;--warn:#9a6700;--warn-bg:#fff6dc;--pass:#1f7a3a;--pass-bg:#e7f6ec;--info-bg:#eef4ff;--info:#1f4fbf}
-@media (prefers-color-scheme:dark){:root{--bg:#15181c;--card:#1e2227;--ink:#e8eaed;--sub:#a0a8b1;--line:#343a41;--soft:#2a1f25;--block:#ff8a80;--block-bg:#3a1f1f;--warn:#ffd166;--warn-bg:#3a3220;--pass:#7bd88f;--pass-bg:#1e3326;--info-bg:#1f2a3f;--info:#9db7ff}}
+:root{--bg:#f4f6f8;--card:#fff;--ink:#1d2329;--sub:#5b6570;--line:#dfe3e8;--accent:#0088ff;--accent-ink:#fff;--soft:#eaf4ff;--block:#c62828;--block-bg:#fdecec;--warn:#9a6700;--warn-bg:#fff6dc;--pass:#1f7a3a;--pass-bg:#e7f6ec;--info-bg:#eef4ff;--info:#1f4fbf}
+@media (prefers-color-scheme:dark){:root{--bg:#15181c;--card:#1e2227;--ink:#e8eaed;--sub:#a0a8b1;--line:#343a41;--soft:#1a2a3d;--block:#ff8a80;--block-bg:#3a1f1f;--warn:#ffd166;--warn-bg:#3a3220;--pass:#7bd88f;--pass-bg:#1e3326;--info-bg:#1f2a3f;--info:#9db7ff}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 "Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
 header{padding:22px 24px 6px;max-width:1400px}
@@ -1080,7 +1080,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-19a'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-20a'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1277,7 +1277,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-16a';
+  const VERSION = '2026-10-20a';
   if (window.__cpnFiller?.v === VERSION) { window.__cpnFiller.open(PLAN); return; }
   // 예전 버전이 열려 있으면(새로고침 없이 새 코드를 붙여넣은 경우) 닫고 새 버전으로 연다
   if (window.__cpnFiller) {
@@ -1509,7 +1509,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     .b{padding:10px 12px;overflow:auto}
     button{font:inherit;border:0;border-radius:7px;padding:6px 11px;background:#1f6feb;color:#fff;cursor:pointer;font-weight:600}
     button.g{background:#fff;color:#1f2328;border:1px solid #c9ced6;font-weight:500}
-    button.p1{background:#e6005a}
+    button.p1{background:#0088ff}
     button:disabled{opacity:.45;cursor:not-allowed}
     textarea{width:100%;box-sizing:border-box;min-height:70px;font:12px monospace}
     table{border-collapse:collapse;width:100%;margin:6px 0}
