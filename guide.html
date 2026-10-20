@@ -48,15 +48,18 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
 .latest{margin-top:14px;padding:14px 18px;border:2px solid var(--accent);border-radius:12px;background:var(--soft)}
 .latest-t{font-weight:800;font-size:16px;color:var(--accent)}
 .latest-t small{font-weight:500;font-size:13px;color:var(--sub)}
-.latest-url{display:inline-block;margin-top:8px;font-size:20px;font-weight:800;color:var(--accent);text-decoration:underline;word-break:break-all}
-.latest-s{margin-top:6px;font-size:14px;color:var(--sub)}
-.latest-s a{color:var(--accent);font-weight:600}
+.latest-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
+.latest-n{font-weight:700;min-width:170px}
+.latest a.go{display:inline-block;background:var(--accent);color:#fff;border-radius:6px;padding:8px 16px;font-weight:700;text-decoration:none}
+.latest button.copylink{background:#fff;color:var(--accent);border:2px solid var(--accent);border-radius:6px;padding:6px 14px;font:inherit;font-weight:700;cursor:pointer}
+.latest button.copylink.done{background:var(--ok);border-color:var(--okline);color:var(--ink)}
+@media (prefers-color-scheme:dark){.latest button.copylink{background:transparent}}
 .ver b{color:var(--ink)}
 .ver a{color:var(--accent)}
 .hist{padding-left:18px}
 .hist>li{margin:8px 0}
 .hist ul{margin:4px 0}
-@media print{nav,.copy{display:none}.card{break-inside:avoid}body{background:#fff}}
+@media print{nav,.copy,.copylink{display:none}.card{break-inside:avoid}body{background:#fff}}
 </style>
 </head>
 <body>
@@ -66,8 +69,8 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
   <p class="ver"><b>꾸러미 버전 2026-10-20c</b> · 쿠폰 에이전트 v2026-10-20b · 쿠폰 승인 에이전트 2026-10-14 09:48 수정본 · 공헌이익 승인 에이전트 2026-10-16 14:25 수정본</p>
   <div class="latest">
     <div class="latest-t">📌 최신 버전은 항상 이 주소에서 열면 돼요 <small>(즐겨찾기 추천 · 파일을 다시 받을 필요 없어요)</small></div>
-    <a class="latest-url" href="https://sleepychoonsik.github.io/coupon-agent-site/" target="_blank">https://sleepychoonsik.github.io/coupon-agent-site/</a>
-    <div class="latest-s">이 설명서: <a href="https://sleepychoonsik.github.io/coupon-agent-site/guide.html" target="_blank">https://sleepychoonsik.github.io/coupon-agent-site/guide.html</a></div>
+    <div class="latest-row"><span class="latest-n">쿠폰 에이전트 (검증 화면)</span><a class="go" href="https://sleepychoonsik.github.io/coupon-agent-site/" target="_blank">바로가기</a><button class="copylink" data-url="https://sleepychoonsik.github.io/coupon-agent-site/">링크 복사</button></div>
+    <div class="latest-row"><span class="latest-n">이 설명서</span><a class="go" href="https://sleepychoonsik.github.io/coupon-agent-site/guide.html" target="_blank">바로가기</a><button class="copylink" data-url="https://sleepychoonsik.github.io/coupon-agent-site/guide.html">링크 복사</button></div>
   </div>
 
   <nav>
@@ -246,6 +249,19 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
   };
   addEventListener('scroll', update, { passive: true }); update();
 })();
+// 링크 복사 (사용자 요청 2026-10-20)
+document.querySelectorAll('button.copylink').forEach((b) => {
+  const label = b.textContent;
+  b.addEventListener('click', async () => {
+    const url = b.dataset.url; let ok = false;
+    try { await navigator.clipboard.writeText(url); ok = true; } catch (e) {
+      const ta = document.createElement('textarea'); ta.value = url; document.body.appendChild(ta); ta.select();
+      try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
+    }
+    b.textContent = ok ? '복사했어요!' : '복사 실패'; b.classList.toggle('done', ok);
+    setTimeout(() => { b.textContent = label; b.classList.remove('done'); }, 2000);
+  });
+});
 document.querySelectorAll('button.copy').forEach((b) => {
   const label = b.textContent;
   b.addEventListener('click', async () => {
