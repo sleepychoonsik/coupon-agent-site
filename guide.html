@@ -76,9 +76,9 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
 <main>
   <h1>🤖 쿠폰 에이전트 사용 설명서 <small style="font-size:14px;font-weight:600;color:var(--sub)">패션1팀 버전</small></h1>
   <p class="sub">패션1팀 · 세일즈원 쿠폰 등록과 승인을 자동으로 해 주는 도구 3가지</p>
-  <p class="ver"><b>꾸러미 버전 2026-10-20c</b> · 쿠폰 에이전트 v2026-10-20b · 쿠폰 승인 10-14 · 공헌이익 승인 10-16</p>
+  <p class="ver"><b>설명서 2026-10-21a</b> · 쿠폰 에이전트 v2026-10-20b · 쿠폰 승인 10-14 · 공헌이익 승인 10-16</p>
   <div class="latest">
-    <div class="latest-h"><div class="latest-t">최신 버전은 항상 이 주소에서 열면 돼요</div><div class="latest-d">즐겨찾기에 넣어 두면 파일을 다시 받을 필요가 없어요.</div></div>
+    <div class="latest-h"><div class="latest-t">최신 버전은 항상 이 주소에서 열면 돼요</div><div class="latest-d">즐겨찾기에 넣어 두면 늘 최신 버전이에요.</div></div>
     <div class="links">
       <div class="link"><span class="link-i">🤖</span><span class="link-b"><span class="link-n">쿠폰 에이전트</span><span class="link-u">쿠폰 사전검증 · 세일즈원 등록</span></span><span class="link-a"><a class="go" href="https://sleepychoonsik.github.io/coupon-agent-site/" target="_blank">열기</a><button class="copylink" data-url="https://sleepychoonsik.github.io/coupon-agent-site/">링크 복사</button></span></div>
       <div class="link"><span class="link-i">📖</span><span class="link-b"><span class="link-n">사용 설명서</span><span class="link-u">패션1팀 버전 (승인 코드 포함)</span></span><span class="link-a"><a class="go" href="https://sleepychoonsik.github.io/coupon-agent-site/guide.html" target="_blank">열기</a><button class="copylink" data-url="https://sleepychoonsik.github.io/coupon-agent-site/guide.html">링크 복사</button></span></div>
@@ -126,14 +126,14 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
 
     <h3>준비물</h3>
     <ul>
-      <li>파일 <b>1_쿠폰에이전트.html</b> (공유받은 폴더에 있어요. 더블클릭하면 크롬에서 열려요. 인터넷에 아무것도 보내지 않아요.)</li>
+      <li>크롬에서 연 <b>쿠폰 에이전트</b> 화면: <a href="https://sleepychoonsik.github.io/coupon-agent-site/" target="_blank">https://sleepychoonsik.github.io/coupon-agent-site/</a> (맨 위 [열기] 버튼. 입력한 내용은 내 PC 밖으로 나가지 않아요.)</li>
       <li>엑셀에 정리한 <b>상품코드 | 가격 또는 할인</b> 두 열 (최종가 <b>89000</b>, 할인율 <b>15%</b>, 할인액 <b>-9000</b>)</li>
       <li>쿠폰 기간 (모바일라이브면 방송 시작 시각만)</li>
     </ul>
 
     <h3>순서</h3>
     <ol>
-      <li><b>1_쿠폰에이전트.html</b>을 열고 <b>1번 칸</b>에 엑셀의 상품코드·가격 또는 할인 두 열을 복사해 붙여넣습니다. 2열은 적는 모양으로 구분해요. 숫자만 쓰면 <b>고객 최종가</b>(89000), %를 붙이면 <b>할인율</b>(15%), 앞에 -를 붙이면 <b>할인액</b>(-9000)이고, 할인율·할인액은 판매가 기준이에요. 상품마다 섞어 써도 돼요.</li>
+      <li><b>쿠폰 에이전트</b> 화면을 열고 <b>1번 칸</b>에 엑셀의 상품코드·가격 또는 할인 두 열을 복사해 붙여넣습니다. 2열은 적는 모양으로 구분해요. 숫자만 쓰면 <b>고객 최종가</b>(89000), %를 붙이면 <b>할인율</b>(15%), 앞에 -를 붙이면 <b>할인액</b>(-9000)이고, 할인율·할인액은 판매가 기준이에요. 상품마다 섞어 써도 돼요.</li>
       <li>쿠폰 기간과 <b>브랜드</b>를 적습니다. 일반 행사는 시작·종료 날짜와 시간을 고르세요. 종료는 기본이 <b>시작과 같은 날 23:59</b>이고, 그 분의 끝(23:59:59)까지 적용돼요. 모바일라이브는 <b>방송일시와 방송 시간(분)</b>만 넣으면 쿠폰 기간이 방송 30분 전부터 방송 종료까지로 자동으로 잡혀요.</li>
       <li>세일즈원 <b>쿠폰관리 &gt; 상품코드 쿠폰조회</b>에서 같은 상품코드를 조회(진행상태: 전체)하고, 표의 줄을 전부 복사해 <b>2번 칸</b>에 붙여넣습니다(머리글은 없어도 돼요). 지금 판매가와 이미 걸린 쿠폰을 보고 필요한 할인을 계산해요. 할인율(15%)이나 할인액(-9000)으로만 적었다면 이 칸은 비워도 돼요(최종가·마진 점검은 생략).</li>
       <li>세일즈원 <b>상품관리 &gt; 상품 조회/수정</b>에서 같은 상품코드를 조회하고, 표의 줄을 복사해 <b>3번 칸</b>에 붙여넣습니다. 직매입은 당사 100%, 위수탁은 당사·협력사 반반으로 부담이 자동으로 정해져요. 이 칸은 <b>선택</b>이에요. 비워 두면 모두 당사 부담으로 계산해요.</li>
@@ -169,7 +169,7 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
     <h3>준비물</h3>
     <ul>
       <li>승인권자 PC, <b>승인권자 아이디로 로그인</b>한 세일즈원</li>
-      <li>아래 버튼으로 복사하는 승인 코드 (또는 공유 폴더의 <b>2_쿠폰승인에이전트.txt</b> 내용 전체)</li>
+      <li>아래 버튼으로 복사하는 승인 코드 (또는 <a href="https://sleepychoonsik.github.io/coupon-agent-site/approve-all.txt" target="_blank">approve-all.txt</a>를 열어 내용 전체 복사)</li>
     </ul>
     <p><button class="copy" data-code="approveAll">쿠폰 승인 코드 복사</button></p>
 
@@ -203,7 +203,7 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
     <h3>준비물</h3>
     <ul>
       <li>승인권자 PC, <b>승인권자 아이디로 로그인</b>한 세일즈원</li>
-      <li>아래 버튼으로 복사하는 승인 코드 (또는 공유 폴더의 <b>3_공헌이익승인에이전트.txt</b> 내용 전체)</li>
+      <li>아래 버튼으로 복사하는 승인 코드 (또는 <a href="https://sleepychoonsik.github.io/coupon-agent-site/approve-contribution.txt" target="_blank">approve-contribution.txt</a>를 열어 내용 전체 복사)</li>
     </ul>
     <p><button class="copy" data-code="approveContrib">공헌이익 승인 코드 복사</button></p>
 
@@ -283,7 +283,7 @@ document.querySelectorAll('button.copy').forEach((b) => {
       const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select();
       try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
     }
-    b.textContent = ok ? '복사했어요! 세일즈원 콘솔에 붙여넣으세요' : '복사 실패: 공유 폴더의 txt 파일을 열어 복사해 주세요';
+    b.textContent = ok ? '복사했어요! 세일즈원 콘솔에 붙여넣으세요' : '복사 실패: 위 approve 링크를 열어 전체 복사해 주세요';
     b.classList.toggle('done', ok);
     setTimeout(() => { b.textContent = label; b.classList.remove('done'); }, 3000);
   });
