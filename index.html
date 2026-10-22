@@ -96,8 +96,6 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
 .utils button{font-size:12px;padding:6px 10px}
 .utils .muted{margin-right:4px}
 .sobox{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
-.bml{display:inline-block;padding:7px 12px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;cursor:grab;white-space:nowrap}
-.bml:active{cursor:grabbing}
 </style>
 </head>
 <body>
@@ -125,7 +123,8 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
     <textarea id="targets" spellcheck="false" placeholder="1130687399	89000&#10;1130687400	15%&#10;1130687401	-9000&#10;1130687402	15%	2026-10-15 00:00	2026-10-15 23:59"></textarea>
     <div class="count" id="targetsCount"></div>
     <div class="sobox" id="sobox">
-      <div class="row"><button id="openso" class="ghost">세일즈원 열기</button><a id="bml" class="bml" href="#" title="클릭하지 말고 북마크바로 끌어다 놓으세요">🤖 쿠폰 에이전트</a><span class="muted" id="sohint"><b>처음 한 번</b>: 파란 [🤖 쿠폰 에이전트]를 브라우저 북마크바로 끌어다 놓으세요. 그다음부터는 [세일즈원 열기] → 세일즈원에서 북마크 [🤖 쿠폰 에이전트] 클릭이면 두 창이 이어져요.</span></div>
+      <div class="row"><button id="openso">세일즈원 열기</button><button id="bmcode" class="ghost" title="북마크 URL 칸에 붙여넣을 코드를 복사해요">🤖 북마크 코드 복사</button><button id="socode" class="ghost" title="세일즈원 콘솔에 붙여넣을 에이전트 코드를 복사해요">콘솔용 코드 복사</button></div>
+      <p class="muted" id="sohint" style="margin:6px 0 0"><b>처음 한 번</b>: [🤖 북마크 코드 복사] → 크롬 북마크바에서 오른쪽 클릭 → <b>페이지 추가</b> → 이름 <b>🤖 쿠폰 에이전트</b>, URL 칸에 <b>Ctrl+V</b> → 저장. 그다음부터는 [세일즈원 열기] → 세일즈원 창에서 북마크 <b>🤖 쿠폰 에이전트</b> 클릭이면 두 창이 이어져요. (북마크가 안 되는 PC는 [콘솔용 코드 복사] → 세일즈원 창에서 F12 → Console → Ctrl+V → Enter.)</p>
       <div class="row" style="margin-top:8px"><button id="fetchso" class="ghost" disabled>세일즈원에서 2·3번 불러오기</button><span class="muted" id="fetchhint">세일즈원 창과 이어지면 2·3번을 붙여넣지 않고 바로 불러올 수 있어요.</span></div>
     </div>
     <ul class="need" style="margin-top:12px">
@@ -225,7 +224,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
         <div class="row" style="margin:0 0 6px"><button id="copyagain" class="ghost">다시 복사</button><span id="copymsg" style="font-weight:600"></span></div>
         <textarea id="copyta" readonly style="min-height:70px"></textarea>
       </div>
-      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창과 이어져 있으면(2번 위 [세일즈원 열기] → 북마크 [🤖 쿠폰 에이전트]) 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
+      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창과 이어져 있으면(1번 아래 [세일즈원 열기] → 그 창에서 북마크 🤖 쿠폰 에이전트) 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
       <ol>
         <li>위 <b>[세일즈원 입력 코드 복사]</b>를 누르세요.</li>
         <li>세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 화면에서 <kbd>F12</kbd> → <b>Console</b> 탭을 여세요.</li>
@@ -1106,7 +1105,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-22d'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-22e'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1234,17 +1233,26 @@ $('fetchso').addEventListener('click', () => {
   agentSend({ type: 'cpn-lookup', codes: [...new Set(codes)] });
 });
 $('sendagent').addEventListener('click', sendPlan);
-// [세일즈원 열기]: 세일즈원 쿠폰관리 화면을 새 창으로 연다. 그 창에서 북마크(아래 bml)로 에이전트를 띄우면 window.opener(이 화면)로 인사해 온다.
+// [세일즈원 열기]: 세일즈원 쿠폰관리 화면을 새 창으로 연다. 그 창에서 북마크나 콘솔로 에이전트를 띄우면 window.opener(이 화면)로 인사해 온다.
 const SO_URL = 'https://nsalesone.gshs.co.kr/#/product/promotion/coupon/CoupnMng';
 let soWin = null;
 $('openso').addEventListener('click', () => {
   soWin = window.open(window.__cpnSalesOneUrl || SO_URL, 'cpnSalesOne');
+  if (soWin) try { soWin.focus(); } catch {}
   if (!soWin) { $('sohint').textContent = '팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용한 뒤 다시 누르세요.'; return; }
-  $('sohint').textContent = '세일즈원 창이 열렸어요. 로그인한 뒤 북마크바의 [🤖 쿠폰 에이전트]를 누르면 두 창이 이어져요. (북마크가 없으면 파란 버튼을 북마크바로 끌어다 놓으세요.)';
+  $('sohint').textContent = '세일즈원 창이 열렸어요. 로그인한 뒤 그 창에서 북마크 [🤖 쿠폰 에이전트]를 누르면 두 창이 이어져요. (북마크가 없으면 [🤖 북마크 코드 복사]로 먼저 만들거나, [콘솔용 코드 복사] → F12 → Console → Ctrl+V → Enter.)';
 });
-// 북마크용 링크(bookmarklet): 에이전트 코드 전체를 javascript: 주소로 담는다. 누르지 말고 북마크바로 끌어다 놓아야 한다
-window.addEventListener('DOMContentLoaded', () => { $('bml').href = 'javascript:' + encodeURIComponent('void ' + document.getElementById('fillercode').textContent); });
-$('bml').addEventListener('click', (e) => { e.preventDefault(); $('sohint').innerHTML = '<b>클릭하지 말고</b> 이 파란 버튼을 브라우저 <b>북마크바(즐겨찾기 모음)</b>로 끌어다 놓으세요. 북마크바가 안 보이면 Ctrl+Shift+B를 누르세요.'; });
+// 북마크용 코드(bookmarklet): 에이전트 코드 전체를 javascript: 주소로 담는다. 북마크 추가 창의 URL 칸에 붙여넣는다. (끌어다 놓기는 회사 PC에서 막혀 있음, 2026-10-22)
+$('bmcode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet('javascript:' + encodeURIComponent('void ' + agentCode()))) ? '✓ 북마크 코드를 복사했어요. 북마크바 오른쪽 클릭 → 페이지 추가 → 이름 🤖 쿠폰 에이전트, URL 칸에 Ctrl+V → 저장. 그다음부터 세일즈원 창에서 이 북마크를 누르면 돼요.' : '자동 복사가 막혀 있어요. [콘솔용 코드 복사] 방법을 써 주세요.'; });
+// 에이전트 코드를 조용히 복사한다 (④의 복사 칸을 펼치지 않고). 회사 PC는 clipboard API가 막힐 수 있어 execCommand부터
+function copyQuiet(t) {
+  const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;left:-9999px'; document.body.appendChild(ta); ta.focus(); ta.select();
+  let ok = false; try { ok = document.execCommand('copy'); } catch {} ta.remove();
+  if (!ok && navigator.clipboard) return navigator.clipboard.writeText(t).then(() => true, () => false);
+  return Promise.resolve(ok);
+}
+const agentCode = () => document.getElementById('fillercode').textContent;
+$('socode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet(agentCode())) ? '✓ 콘솔용 코드를 복사했어요. 세일즈원 창에서 F12 → Console → Ctrl+V → Enter 하면 두 창이 이어져요.' : '자동 복사가 막혀 있어요. ④의 [세일즈원 입력 코드 복사] 아래 칸에서 직접 복사하거나 설명서의 agent.txt를 열어 전체 복사하세요.'; });
 if (window.opener) { let n = 0; const hi = () => { try { window.opener.postMessage({ type: 'cpn-hello' }, '*'); } catch {} if (++n < 5 && !agent.win) setTimeout(hi, 1000 * n); }; hi(); }
 // 회사 PC에서는 클립보드 권한·알림창이 막혀 있을 수 있어, 화면 안에 결과를 보여주고 옛 방식(execCommand) 복사부터 시도한다.
 let lastCopyMsg = '';
@@ -1362,7 +1370,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22d';
+  const VERSION = '2026-10-22e';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
