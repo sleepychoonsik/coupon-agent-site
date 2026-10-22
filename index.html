@@ -95,6 +95,9 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
 .utils{margin-top:28px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .utils button{font-size:12px;padding:6px 10px}
 .utils .muted{margin-right:4px}
+.sobox{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--soft)}
+.bml{display:inline-block;padding:7px 12px;border-radius:8px;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;cursor:grab;white-space:nowrap}
+.bml:active{cursor:grabbing}
 </style>
 </head>
 <body>
@@ -121,7 +124,10 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
     <p class="help">할인은 판매가 기준이고, 상품마다 섞어 써도 돼요. 상품마다 기간이 다르면 3·4열에 시작·종료를 넣어도 됩니다.</p>
     <textarea id="targets" spellcheck="false" placeholder="1130687399	89000&#10;1130687400	15%&#10;1130687401	-9000&#10;1130687402	15%	2026-10-15 00:00	2026-10-15 23:59"></textarea>
     <div class="count" id="targetsCount"></div>
-    <div class="row" style="margin-top:10px"><button id="fetchso" class="ghost" disabled>세일즈원에서 2·3번 불러오기</button><span class="muted" id="fetchhint">세일즈원의 🤖 쿠폰 에이전트 창에서 [🔎 사전검증 열기]로 이 화면을 열면, 2·3번을 붙여넣지 않고 바로 불러올 수 있어요.</span></div>
+    <div class="sobox" id="sobox">
+      <div class="row"><button id="openso" class="ghost">세일즈원 열기</button><a id="bml" class="bml" href="#" title="클릭하지 말고 북마크바로 끌어다 놓으세요">🤖 쿠폰 에이전트</a><span class="muted" id="sohint"><b>처음 한 번</b>: 파란 [🤖 쿠폰 에이전트]를 브라우저 북마크바로 끌어다 놓으세요. 그다음부터는 [세일즈원 열기] → 세일즈원에서 북마크 [🤖 쿠폰 에이전트] 클릭이면 두 창이 이어져요.</span></div>
+      <div class="row" style="margin-top:8px"><button id="fetchso" class="ghost" disabled>세일즈원에서 2·3번 불러오기</button><span class="muted" id="fetchhint">세일즈원 창과 이어지면 2·3번을 붙여넣지 않고 바로 불러올 수 있어요.</span></div>
+    </div>
     <ul class="need" style="margin-top:12px">
       <li><label class="field"><input type="checkbox" id="live"> <span style="color:inherit">모바일라이브 방송 쿠폰</span></label></li>
       <li id="normalPeriod">
@@ -219,7 +225,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
         <div class="row" style="margin:0 0 6px"><button id="copyagain" class="ghost">다시 복사</button><span id="copymsg" style="font-weight:600"></span></div>
         <textarea id="copyta" readonly style="min-height:70px"></textarea>
       </div>
-      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창의 에이전트에서 이 화면을 열었다면 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
+      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창과 이어져 있으면(2번 위 [세일즈원 열기] → 북마크 [🤖 쿠폰 에이전트]) 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
       <ol>
         <li>위 <b>[세일즈원 입력 코드 복사]</b>를 누르세요.</li>
         <li>세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 화면에서 <kbd>F12</kbd> → <b>Console</b> 탭을 여세요.</li>
@@ -1100,7 +1106,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-22c'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-22d'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1197,9 +1203,12 @@ function sendPlan() {
 }
 window.addEventListener('message', (e) => {
   const d = e.data; if (!d || typeof d !== 'object' || !String(d.type || '').startsWith('cpn-')) return;
-  if (e.source !== window.opener) return; // 이 화면을 연 에이전트 창의 말만 듣는다
+  if (e.source !== window.opener && !(soWin && e.source === soWin)) return; // 이 화면을 연 에이전트 창, 또는 이 화면이 연 세일즈원 창의 말만 듣는다
   if (d.type === 'cpn-ready') {
+    const first = agent.win !== e.source; // 같은 창의 두 번째 인사면 문구만 그대로 둔다 (인사를 주고받는 무한 반복 방지)
     agent.win = e.source; agent.origin = e.origin; agent.version = d.version || '';
+    if (e.source === soWin && first) { agentSend({ type: 'cpn-hello' }); $('sohint').textContent = '✓ 세일즈원 창과 이어졌어요.'; }
+    if (!first) return;
     $('fetchso').disabled = !d.canLookup; $('fetchso').classList.remove('ghost');
     $('fetchhint').textContent = d.canLookup ? '세일즈원 창과 연결됐어요. 1번에 상품코드를 넣고 누르면 2·3번이 채워져요.' : '세일즈원 창과 연결됐지만 그 에이전트 코드가 옛 버전이라 불러오기는 안 돼요. 최신 에이전트 코드를 써 주세요.';
     $('sendagent').style.display = ''; $('sendagent').disabled = !(plan && plan.plannedCoupons.length);
@@ -1225,6 +1234,17 @@ $('fetchso').addEventListener('click', () => {
   agentSend({ type: 'cpn-lookup', codes: [...new Set(codes)] });
 });
 $('sendagent').addEventListener('click', sendPlan);
+// [세일즈원 열기]: 세일즈원 쿠폰관리 화면을 새 창으로 연다. 그 창에서 북마크(아래 bml)로 에이전트를 띄우면 window.opener(이 화면)로 인사해 온다.
+const SO_URL = 'https://nsalesone.gshs.co.kr/#/product/promotion/coupon/CoupnMng';
+let soWin = null;
+$('openso').addEventListener('click', () => {
+  soWin = window.open(window.__cpnSalesOneUrl || SO_URL, 'cpnSalesOne');
+  if (!soWin) { $('sohint').textContent = '팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용한 뒤 다시 누르세요.'; return; }
+  $('sohint').textContent = '세일즈원 창이 열렸어요. 로그인한 뒤 북마크바의 [🤖 쿠폰 에이전트]를 누르면 두 창이 이어져요. (북마크가 없으면 파란 버튼을 북마크바로 끌어다 놓으세요.)';
+});
+// 북마크용 링크(bookmarklet): 에이전트 코드 전체를 javascript: 주소로 담는다. 누르지 말고 북마크바로 끌어다 놓아야 한다
+window.addEventListener('DOMContentLoaded', () => { $('bml').href = 'javascript:' + encodeURIComponent('void ' + document.getElementById('fillercode').textContent); });
+$('bml').addEventListener('click', (e) => { e.preventDefault(); $('sohint').innerHTML = '<b>클릭하지 말고</b> 이 파란 버튼을 브라우저 <b>북마크바(즐겨찾기 모음)</b>로 끌어다 놓으세요. 북마크바가 안 보이면 Ctrl+Shift+B를 누르세요.'; });
 if (window.opener) { let n = 0; const hi = () => { try { window.opener.postMessage({ type: 'cpn-hello' }, '*'); } catch {} if (++n < 5 && !agent.win) setTimeout(hi, 1000 * n); }; hi(); }
 // 회사 PC에서는 클립보드 권한·알림창이 막혀 있을 수 있어, 화면 안에 결과를 보여주고 옛 방식(execCommand) 복사부터 시도한다.
 let lastCopyMsg = '';
@@ -1342,7 +1362,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22c';
+  const VERSION = '2026-10-22d';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
@@ -1683,13 +1703,17 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   }
 
   // 사전검증 화면과의 연결 (window.open으로 연 창과 postMessage로 주고받는다)
-  let validatorWin = null;
+  // 검증 화면이 [세일즈원 열기]로 이 창을 열었으면(window.opener) 그 창이 검증 화면이다 (북마크로 에이전트를 띄우는 흐름, 2026-10-22)
+  let validatorWin = (() => { try { return window.opener && window.opener !== window ? window.opener : null; } catch { return null; } })();
+  const fromOpener = !!validatorWin;
+  let linked = false;
   const openValidator = () => { const u = window.__cpnValidatorUrl || VALIDATOR_URL; validatorWin = window.open(u, 'cpnValidator'); if (!validatorWin) alert('팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용해 주세요.'); };
   const trusted = (e) => e.origin === 'https://sleepychoonsik.github.io' || (e.source && e.source === validatorWin);
   window.addEventListener('message', async (e) => {
     const d = e.data; if (!d || typeof d !== 'object' || !String(d.type || '').startsWith('cpn-') || !trusted(e)) return;
     const reply = (m) => { try { e.source.postMessage(m, e.origin === 'null' ? '*' : e.origin); } catch {} };
-    if (d.type === 'cpn-hello') { validatorWin = validatorWin || e.source; reply({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }); return; }
+    linked = true;
+    if (d.type === 'cpn-hello') { validatorWin = validatorWin || e.source; reply({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }); render(); return; }
     if (d.type === 'cpn-lookup') { const r = await lookupCodes(d.codes); reply({ type: 'cpn-result', ...r }); return; }
     if (d.type === 'cpn-plan') { try { window.__cpnFiller.open(d.plan); reply({ type: 'cpn-plan-ok', count: (plan?.coupons || []).length }); } catch (err) { reply({ type: 'cpn-plan-ok', error: err.message }); } }
   });
@@ -1745,6 +1769,8 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   const body = $('#body');
   $('#x').onclick = () => { host.remove(); delete window.__cpnFiller; clearMarks(); };
   $('#val').onclick = openValidator;
+  // 검증 화면이 연 창이면 먼저 인사해서 연결한다 (검증 화면이 cpn-hello로 답하면 linked)
+  if (fromOpener) { let n = 0; const hi = () => { try { validatorWin.postMessage({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }, '*'); } catch {} if (++n < 6 && !linked) setTimeout(hi, 1000 * n); }; hi(); }
   $('#min').onclick = () => { const open = body.style.display === 'none'; body.style.display = open ? '' : 'none'; $('#min').textContent = open ? '▲접기' : '▼열기'; $('.p').style.width = open ? '' : 'max-content'; };
   // 도우미 창이 세일즈원 [저장]을 가리지 않게 왼쪽/오른쪽으로 옮긴다 (사용자 지적 2026-10-12). 고른 쪽은 기억.
   const setSide = (side) => {
@@ -1775,7 +1801,7 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
 
   function render() {
     if (!plan || !plan.coupons.length) {
-      body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.</p>
+      body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">${linked ? '✓ 검증 화면과 연결됐어요. 검증 화면에서 <b>[세일즈원에서 2·3번 불러오기]</b> → <b>[쿠폰 만들기]</b>를 하면 만든 쿠폰이 이 창에 바로 들어와요.' : '등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.'}</p>
         <div class="hint">예전 방식(검증 화면의 [세일즈원 입력 코드 복사] → 콘솔에 붙여넣기)도 그대로 돼요. 계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
       $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 사전검증 도구에서 복사한 코드를 콘솔에 붙여넣어 주세요.'); } };
       return;

@@ -7,7 +7,7 @@
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22c';
+  const VERSION = '2026-10-22d';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
@@ -348,13 +348,17 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   }
 
   // 사전검증 화면과의 연결 (window.open으로 연 창과 postMessage로 주고받는다)
-  let validatorWin = null;
+  // 검증 화면이 [세일즈원 열기]로 이 창을 열었으면(window.opener) 그 창이 검증 화면이다 (북마크로 에이전트를 띄우는 흐름, 2026-10-22)
+  let validatorWin = (() => { try { return window.opener && window.opener !== window ? window.opener : null; } catch { return null; } })();
+  const fromOpener = !!validatorWin;
+  let linked = false;
   const openValidator = () => { const u = window.__cpnValidatorUrl || VALIDATOR_URL; validatorWin = window.open(u, 'cpnValidator'); if (!validatorWin) alert('팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용해 주세요.'); };
   const trusted = (e) => e.origin === 'https://sleepychoonsik.github.io' || (e.source && e.source === validatorWin);
   window.addEventListener('message', async (e) => {
     const d = e.data; if (!d || typeof d !== 'object' || !String(d.type || '').startsWith('cpn-') || !trusted(e)) return;
     const reply = (m) => { try { e.source.postMessage(m, e.origin === 'null' ? '*' : e.origin); } catch {} };
-    if (d.type === 'cpn-hello') { validatorWin = validatorWin || e.source; reply({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }); return; }
+    linked = true;
+    if (d.type === 'cpn-hello') { validatorWin = validatorWin || e.source; reply({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }); render(); return; }
     if (d.type === 'cpn-lookup') { const r = await lookupCodes(d.codes); reply({ type: 'cpn-result', ...r }); return; }
     if (d.type === 'cpn-plan') { try { window.__cpnFiller.open(d.plan); reply({ type: 'cpn-plan-ok', count: (plan?.coupons || []).length }); } catch (err) { reply({ type: 'cpn-plan-ok', error: err.message }); } }
   });
@@ -410,6 +414,8 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   const body = $('#body');
   $('#x').onclick = () => { host.remove(); delete window.__cpnFiller; clearMarks(); };
   $('#val').onclick = openValidator;
+  // 검증 화면이 연 창이면 먼저 인사해서 연결한다 (검증 화면이 cpn-hello로 답하면 linked)
+  if (fromOpener) { let n = 0; const hi = () => { try { validatorWin.postMessage({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }, '*'); } catch {} if (++n < 6 && !linked) setTimeout(hi, 1000 * n); }; hi(); }
   $('#min').onclick = () => { const open = body.style.display === 'none'; body.style.display = open ? '' : 'none'; $('#min').textContent = open ? '▲접기' : '▼열기'; $('.p').style.width = open ? '' : 'max-content'; };
   // 도우미 창이 세일즈원 [저장]을 가리지 않게 왼쪽/오른쪽으로 옮긴다 (사용자 지적 2026-10-12). 고른 쪽은 기억.
   const setSide = (side) => {
@@ -440,7 +446,7 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
 
   function render() {
     if (!plan || !plan.coupons.length) {
-      body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.</p>
+      body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">${linked ? '✓ 검증 화면과 연결됐어요. 검증 화면에서 <b>[세일즈원에서 2·3번 불러오기]</b> → <b>[쿠폰 만들기]</b>를 하면 만든 쿠폰이 이 창에 바로 들어와요.' : '등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.'}</p>
         <div class="hint">예전 방식(검증 화면의 [세일즈원 입력 코드 복사] → 콘솔에 붙여넣기)도 그대로 돼요. 계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
       $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 사전검증 도구에서 복사한 코드를 콘솔에 붙여넣어 주세요.'); } };
       return;
