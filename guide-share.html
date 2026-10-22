@@ -210,7 +210,7 @@ document.querySelectorAll('button.copy').forEach((b) => {
       const ta = document.createElement('textarea'); ta.value = code; document.body.appendChild(ta); ta.select();
       try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove();
     }
-    b.textContent = ok ? (b.dataset.code === 'bookmarkCode' ? '복사했어요! 북마크 추가 창의 URL 칸에 붙여넣으세요' : '복사했어요! 세일즈원 콘솔에 붙여넣으세요') : '복사 실패: 위 링크의 txt를 열어 전체 복사해 주세요';
+    b.textContent = ok ? (/Bookmark$|^bookmarkCode$/.test(b.dataset.code) ? '복사했어요! 북마크 추가 창의 URL 칸에 붙여넣으세요' : '복사했어요! 세일즈원 콘솔에 붙여넣으세요') : '복사 실패: 위 링크의 txt를 열어 전체 복사해 주세요';
     b.classList.toggle('done', ok);
     setTimeout(() => { b.textContent = label; b.classList.remove('done'); }, 3000);
   });
