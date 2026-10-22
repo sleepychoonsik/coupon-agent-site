@@ -30,18 +30,63 @@
     return !!e && (b === e || b.contains(e));
   };
 
-  // 진행 상황 창 (오른쪽 아래)
+  // 진행 상황 창 (오른쪽 아래). 2026-10-22 사용자 요청으로 쿠폰 에이전트와 같은 모양으로 바꿈.
+  // 세일즈원 CSS가 섞이지 않게 내용은 섀도 DOM 안에 둔다. 창 높이는 화면 안으로 제한(위가 잘리지 않게)
+  const VERSION = '2026-10-22a'; // 고칠 때마다 올린다 ('자세한 기록'에 보임)
   document.getElementById('cpn-approve-contrib')?.remove();
   const box = document.createElement('div');
   box.id = 'cpn-approve-contrib';
-  box.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:2147483647;width:320px;max-height:55vh;overflow:auto;background:#fff;border:1px solid #888;border-radius:8px;padding:10px;font:13px sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.2)';
-  box.innerHTML = '<b>🤖 공헌이익 승인</b> <button id="cpn-stop">멈추기</button> <button id="cpn-close">닫기</button><div id="cpn-log" style="margin-top:6px;white-space:pre-wrap"></div>';
+  const pos = (k, v) => box.style.setProperty(k, v, 'important');
+  const side0 = (() => { try { return localStorage.getItem('cpnApproveContrib.side') || 'right'; } catch (e) { return 'right'; } })();
+  pos('position', 'fixed'); pos(side0, '16px'); pos('bottom', '16px'); pos('z-index', '2147483647'); pos('width', '380px');
+  const root = box.attachShadow({ mode: 'open' });
+  root.innerHTML = `<style>
+    :host{all:initial}
+    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:12px;font:13px/1.45 system-ui,"Malgun Gothic",sans-serif;box-shadow:0 10px 32px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+    *{box-sizing:border-box;font:inherit}
+    .hd{flex:none;display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid #e3e6ea;font-weight:700;font-size:14px}
+    .hd b{flex:1;font-weight:700}
+    .hd button,.sub{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:7px;padding:4px 8px;cursor:pointer;font-size:12px;font-weight:500}
+    .sub{width:100%;padding:7px 12px;font-size:13px;margin-top:10px}
+    .sub:disabled{opacity:.45;cursor:not-allowed}
+    .bd{padding:10px 12px;overflow:auto;min-height:0}
+    .msg{margin-bottom:4px}
+    .msg.bad{background:#fdecec;color:#b42318;border-radius:8px;padding:7px 9px;font-weight:500}
+    .msg.ok{background:#e7f6ec;color:#1a7f37;border-radius:8px;padding:7px 9px;font-weight:600}
+    .bar{height:6px;background:#e3e6ea;border-radius:999px;margin:6px 0 4px;overflow:hidden}
+    .bar i{display:block;height:100%;background:#1a7f37;width:0;transition:width .3s}
+    .m{color:#656d76;font-size:12px}
+    details{margin-top:10px;color:#57606a;font-size:12px}
+    pre{white-space:pre-wrap;margin:4px 0 0;max-height:200px;overflow:auto;font-size:11px}
+    textarea{width:100%;height:140px;margin-top:6px;font:11px monospace}
+  </style>
+  <div class="win"><div class="hd"><b>🤖 공헌이익 승인 <span id="cpn-mini" style="font-weight:400"></span></b><button id="cpn-side">옮기기</button><button id="cpn-min">▲접기</button><button id="cpn-close">닫기</button></div>
+  <div class="bd" id="cpn-body"><div class="msg" id="cpn-msg">목록을 읽는 중…</div><div class="bar" id="cpn-bar" style="display:none"><i id="cpn-fill"></i></div><div class="m" id="cpn-now"></div>
+  <button class="sub" id="cpn-stop">멈추기 (지금 건까지만)</button><div id="cpn-diag"></div>
+  <details id="cpn-det"><summary>자세한 기록 · 버전 ${VERSION}</summary><pre id="cpn-log"></pre></details></div></div>`;
   document.body.appendChild(box);
+  const $ = (q) => root.querySelector(q);
   let stop = false;
-  box.querySelector('#cpn-stop').onclick = () => { stop = true; log('멈추는 중… (지금 건까지만 하고 멈춰요)'); };
-  box.querySelector('#cpn-close').onclick = () => { stop = true; box.remove(); };
-  const logEl = box.querySelector('#cpn-log');
-  const log = (s) => { logEl.textContent += `${new Date().toTimeString().slice(0, 8)} ${s}\n`; logEl.scrollTop = 1e9; };
+  $('#cpn-stop').onclick = () => { stop = true; $('#cpn-stop').textContent = '멈추는 중…'; $('#cpn-stop').disabled = true; log('멈추는 중… (지금 건까지만 하고 멈춰요)'); };
+  $('#cpn-close').onclick = () => { stop = true; box.remove(); };
+  let folded = false;
+  $('#cpn-min').onclick = () => { folded = !folded; $('#cpn-body').style.display = folded ? 'none' : ''; $('#cpn-side').style.display = folded ? 'none' : ''; $('#cpn-min').textContent = folded ? '▼열기' : '▲접기'; };
+  $('#cpn-side').onclick = () => {
+    const now = box.style.getPropertyValue('right') ? 'right' : 'left', next = now === 'right' ? 'left' : 'right';
+    box.style.removeProperty(now); pos(next, '16px');
+    try { localStorage.setItem('cpnApproveContrib.side', next); } catch (e) {}
+  };
+  const logEl = $('#cpn-log');
+  // 들여쓰지 않은 기록 줄은 창 위쪽 안내 문구로도 보여 준다. 실패·멈춤 문구는 빨간 상자, '끝.'은 초록 상자
+  const log = (s) => {
+    logEl.textContent += `${new Date().toTimeString().slice(0, 8)} ${s}\n`; logEl.scrollTop = 1e9;
+    if (/^\d+\/\d+ /.test(s)) { $('#cpn-now').textContent = '지금: ' + s.replace(/^\d+\/\d+ /, ''); return; }
+    if (/^\s/.test(s)) { if (/멈/.test(s)) setMsg(s.trim(), 'bad'); return; }
+    setMsg(s, /^끝\./.test(s) ? 'ok' : /못 |멈|없어요|취소/.test(s) ? 'bad' : '');
+  };
+  const setMsg = (t, cls) => { const m = $('#cpn-msg'); m.textContent = t; m.className = 'msg' + (cls ? ' ' + cls : ''); };
+  const setProg = (n, total) => { $('#cpn-bar').style.display = ''; $('#cpn-fill').style.width = `${total ? Math.min(100, Math.round((n / total) * 100)) : 0}%`; $('#cpn-mini').textContent = `${n}/${total}`; };
+  const finish = () => { $('#cpn-stop').style.display = 'none'; $('#cpn-now').textContent = ''; };
 
   // 화면 구조 요약을 창에 띄운다 (복사해서 보내 주면 한 번에 고칠 수 있게)
   const dsc = (e) => e ? `${e.tagName.toLowerCase()}${e.id ? '#' + e.id : ''}${e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/).slice(0, 4).join('.') : ''}` : '없음';
@@ -64,7 +109,7 @@
     ta.style.cssText = 'width:100%;height:140px;margin-top:6px;font:11px monospace';
     const cp = document.createElement('button'); cp.textContent = '진단 내용 복사';
     cp.onclick = () => { ta.select(); try { document.execCommand('copy'); cp.textContent = '복사했어요'; } catch (e) {} };
-    box.append(ta, cp);
+    cp.className = 'sub'; $('#cpn-diag').append(ta, cp); $('#cpn-det').open = true;
     log('위 진단 내용을 복사해서 Claude에게 보내 주세요.');
   }
   const safe = (f) => { try { return f(); } catch (e) { return '오류'; } };
@@ -111,7 +156,7 @@
   let api = null, apiWhere = '', apiInfo = {};
   if (g0) { [api, apiWhere] = findApi(g0); }
   if (api) apiInfo = { checkItem: true, getCheckedItems: typeof api.getCheckedItems === 'function', checkAll: typeof api.checkAll === 'function', getValues: typeof api.getValues === 'function' };
-  if (!g0) { log('목록 표를 못 찾았어요. [승인처리] 탭에서 [조회]를 누른 뒤 다시 붙여넣어 주세요.'); showDiag('표 없음'); return; }
+  if (!g0) { log('목록 표를 못 찾았어요. [승인처리] 탭에서 [조회]를 누른 뒤 다시 붙여넣어 주세요.'); showDiag('표 없음'); finish(); return; }
 
   const cellTexts = (tr) => tr ? [...tr.querySelectorAll('td')].map((td) => norm(td.textContent)).filter(Boolean) : [];
   // 한 건을 알아볼 글자 (상품코드·상품명)
@@ -203,18 +248,18 @@
   }
 
   const total = count();
-  if (!total) { log('목록이 비어 있어요. 결재상태 "승인요청"으로 [조회]한 뒤 다시 붙여넣어 주세요.'); return; }
+  if (!total) { log('목록이 비어 있어요. 결재상태 "승인요청"으로 [조회]한 뒤 다시 붙여넣어 주세요.'); finish(); return; }
   log(`목록 ${total}건 / 체크 방법: ${api ? '표 기능(' + apiWhere + ')' : '체크칸 클릭'}`);
   if (!(api && apiInfo.getValues)) { log('표를 오른쪽으로 넘기며 팀 이름을 읽는 중…'); await readAcross(); }
   // 팀 확인: 팀 글자가 하나도 안 보이면 패션2팀을 가려낼 수 없으니 멈춘다
   const texts = [...Array(total).keys()].map(rowText);
-  if (!texts.some(hasTeam)) { log('목록에서 팀 이름을 못 찾았어요. 패션2팀 건을 가려낼 수 없어서 승인하지 않고 멈췄어요.'); showDiag('팀 칸 없음', [`첫 줄 값: ${texts[0].slice(0, 600)}`]); return; }
+  if (!texts.some(hasTeam)) { log('목록에서 팀 이름을 못 찾았어요. 패션2팀 건을 가려낼 수 없어서 승인하지 않고 멈췄어요.'); showDiag('팀 칸 없음', [`첫 줄 값: ${texts[0].slice(0, 600)}`]); finish(); return; }
   const skipN = texts.filter((t) => SKIP_TEAM.test(t) || !hasTeam(t)).length;
   const goN = total - skipN;
   const unknownN = texts.filter((t) => !SKIP_TEAM.test(t) && !hasTeam(t)).length;
   log(`패션2팀 ${skipN - unknownN}건${unknownN ? `, 팀 이름을 못 읽은 ${unknownN}건` : ''}은 빼고 ${goN}건 승인 예정`);
-  if (!goN) { log('승인할 건이 없어요.'); return; }
-  if (!confirm(`목록 ${total}건 중 패션2팀 ${skipN - unknownN}건${unknownN ? `, 팀 이름을 못 읽은 ${unknownN}건` : ''}은 빼고, ${goN}건을 한 건씩 차례로 승인할까요?`)) { log('취소했어요.'); return; }
+  if (!goN) { log('승인할 건이 없어요.'); finish(); return; }
+  if (!confirm(`목록 ${total}건 중 패션2팀 ${skipN - unknownN}건${unknownN ? `, 팀 이름을 못 읽은 ${unknownN}건` : ''}은 빼고, ${goN}건을 한 건씩 차례로 승인할까요?`)) { log('취소했어요.'); finish(); return; }
 
   const nat = { alert: window.alert, confirm: window.confirm };
   window.alert = (m) => log('  창: ' + m);
@@ -236,7 +281,7 @@
       }
       if (i < 0) { log('남은 건이 없어요.'); break; }
       const key = rowKey(i);
-      log(`${n + 1}/${goN} ${rowLabel(i)}`);
+      log(`${n + 1}/${goN} ${rowLabel(i)}`); setProg(n, goN); setMsg(`승인 중… ${n + 1}/${goN}건째`);
       if (api) safe(() => api.setCurrent && api.setCurrent({ itemIndex: i }));
       const how = await checkOnly(i);
       if (!how) { log('  줄 체크가 확인되지 않아 [승인]을 누르지 않고 멈췄어요.'); showDiag('체크 실패', [`대상 줄 ${i}`]); break; }
@@ -274,9 +319,9 @@
       }
       if (blocked) { stop = true; break; }
       done.add(key);
-      if (oks) { ok++; log('  승인 눌렀어요'); await sleep(1000); } // 목록이 다시 조회되는 동안 잠깐
+      if (oks) { ok++; setProg(n + 1, goN); log('  승인 눌렀어요'); await sleep(1000); } // 목록이 다시 조회되는 동안 잠깐
       else { log('  [승인]을 눌렀는데 확인창을 못 찾아서 멈췄어요.'); showDiag('확인창 못 찾음', [`보이는 [확인]류 버튼: ${okButtons().map((x) => dsc(x) + (onTop(x) ? '(맨 위)' : '(가려짐)')).join(' | ') || '없음'}`, `떠 있는 창 글자: ${[...document.querySelectorAll('[role=dialog], [class*=modal], [class*=Modal], [class*=dialog], [class*=Dialog], [class*=popup], [class*=Popup]')].filter(vis).map((d) => norm(d.textContent).slice(0, 120)).join(' / ') || '없음'}`]); break; }
     }
   } finally { window.alert = nat.alert; window.confirm = nat.confirm; }
-  log(`끝. ${goN}건 중 ${ok}건 승인했어요. (${skipN}건 제외)`);
+  log(`끝. ${goN}건 중 ${ok}건 승인했어요. (${skipN}건 제외)`); if (ok < goN) setMsg(`멈췄어요. ${goN}건 중 ${ok}건 승인했어요. 자세한 기록을 확인해 주세요.`, 'bad'); finish();
 })();
