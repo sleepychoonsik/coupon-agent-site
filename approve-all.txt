@@ -2,7 +2,7 @@
 // 계획과 비교하지 않는다 (사용자 결정 2026-10-12: 등록 에이전트가 계획대로 만들기 때문).
 // 순서: 목록에서 줄 선택 → [승인] → 확인창이 뜨면 바로 [확인] (완료 창이면 다음 쿠폰으로). 시작 전에 창에서 승인할 쿠폰을 고른다.
 (async () => {
-  const VERSION = '2026-10-22b'; // 고칠 때마다 올린다 (창의 '자세한 기록'에 보임)
+  const VERSION = '2026-10-22c'; // 고칠 때마다 올린다 (창의 '자세한 기록'에 보임)
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const vis = (el) => !!(el && (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
   const press = (b) => {
@@ -66,7 +66,7 @@
   const root = box.attachShadow({ mode: 'open' });
   root.innerHTML = `<style>
     :host{all:initial}
-    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:12px;font:13px/1.45 system-ui,"Malgun Gothic",sans-serif;box-shadow:0 10px 32px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:12px;font:13px/1.45 system-ui,"Malgun Gothic",sans-serif;box-shadow:0 10px 32px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;max-height:70vh}
     *{box-sizing:border-box;font:inherit}
     .hd{flex:none;display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid #e3e6ea;font-weight:700;font-size:14px}
     .hd b{flex:1;font-weight:700}
@@ -107,6 +107,7 @@
     bodyEl.style.setProperty('display', folded ? 'none' : 'block', 'important');
     $('#cpn-side').style.display = folded ? 'none' : '';
     $('#cpn-min').textContent = folded ? '▼열기' : '▲접기';
+    pos('width', folded ? 'auto' : '380px'); // 접으면 머리줄 크기로 줄여 주변 화면을 누를 수 있게 (사용자 지적 2026-10-22)
   };
   $('#cpn-side').onclick = () => {
     const now = box.style.right ? 'right' : 'left', next = now === 'right' ? 'left' : 'right';

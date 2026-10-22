@@ -32,7 +32,7 @@
 
   // 진행 상황 창 (오른쪽 아래). 2026-10-22 사용자 요청으로 쿠폰 에이전트와 같은 모양으로 바꿈.
   // 세일즈원 CSS가 섞이지 않게 내용은 섀도 DOM 안에 둔다. 창 높이는 화면 안으로 제한(위가 잘리지 않게)
-  const VERSION = '2026-10-22a'; // 고칠 때마다 올린다 ('자세한 기록'에 보임)
+  const VERSION = '2026-10-22b'; // 고칠 때마다 올린다 ('자세한 기록'에 보임)
   document.getElementById('cpn-approve-contrib')?.remove();
   const box = document.createElement('div');
   box.id = 'cpn-approve-contrib';
@@ -42,7 +42,7 @@
   const root = box.attachShadow({ mode: 'open' });
   root.innerHTML = `<style>
     :host{all:initial}
-    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:12px;font:13px/1.45 system-ui,"Malgun Gothic",sans-serif;box-shadow:0 10px 32px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;max-height:calc(100vh - 32px)}
+    .win{background:#fff;color:#1f2328;border:1px solid #c9ced6;border-radius:12px;font:13px/1.45 system-ui,"Malgun Gothic",sans-serif;box-shadow:0 10px 32px rgba(0,0,0,.2);overflow:hidden;display:flex;flex-direction:column;max-height:70vh}
     *{box-sizing:border-box;font:inherit}
     .hd{flex:none;display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid #e3e6ea;font-weight:700;font-size:14px}
     .hd b{flex:1;font-weight:700}
@@ -70,7 +70,7 @@
   $('#cpn-stop').onclick = () => { stop = true; $('#cpn-stop').textContent = '멈추는 중…'; $('#cpn-stop').disabled = true; log('멈추는 중… (지금 건까지만 하고 멈춰요)'); };
   $('#cpn-close').onclick = () => { stop = true; box.remove(); };
   let folded = false;
-  $('#cpn-min').onclick = () => { folded = !folded; $('#cpn-body').style.display = folded ? 'none' : ''; $('#cpn-side').style.display = folded ? 'none' : ''; $('#cpn-min').textContent = folded ? '▼열기' : '▲접기'; };
+  $('#cpn-min').onclick = () => { folded = !folded; $('#cpn-body').style.display = folded ? 'none' : ''; $('#cpn-side').style.display = folded ? 'none' : ''; $('#cpn-min').textContent = folded ? '▼열기' : '▲접기'; pos('width', folded ? 'auto' : '380px'); }; // 접으면 머리줄 크기로 줄여 주변 화면을 누를 수 있게
   $('#cpn-side').onclick = () => {
     const now = box.style.getPropertyValue('right') ? 'right' : 'left', next = now === 'right' ? 'left' : 'right';
     box.style.removeProperty(now); pos(next, '16px');
