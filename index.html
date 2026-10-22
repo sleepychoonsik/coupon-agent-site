@@ -121,6 +121,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
     <p class="help">할인은 판매가 기준이고, 상품마다 섞어 써도 돼요. 상품마다 기간이 다르면 3·4열에 시작·종료를 넣어도 됩니다.</p>
     <textarea id="targets" spellcheck="false" placeholder="1130687399	89000&#10;1130687400	15%&#10;1130687401	-9000&#10;1130687402	15%	2026-10-15 00:00	2026-10-15 23:59"></textarea>
     <div class="count" id="targetsCount"></div>
+    <div class="row" style="margin-top:10px"><button id="fetchso" class="ghost" disabled>세일즈원에서 2·3번 불러오기</button><span class="muted" id="fetchhint">세일즈원의 🤖 쿠폰 에이전트 창에서 [🔎 사전검증 열기]로 이 화면을 열면, 2·3번을 붙여넣지 않고 바로 불러올 수 있어요.</span></div>
     <ul class="need" style="margin-top:12px">
       <li><label class="field"><input type="checkbox" id="live"> <span style="color:inherit">모바일라이브 방송 쿠폰</span></label></li>
       <li id="normalPeriod">
@@ -151,7 +152,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
 
   <section class="card" id="sec2">
     <h2><span class="badge">2</span>세일즈원 조회 결과 붙여넣기 <span class="optional">할인율·할인액으로만 만들 때는 비워도 돼요</span></h2>
-    <p class="help">세일즈원 <b>상품코드 쿠폰조회</b>에서 위 상품들을 조회(진행상태: 전체)한 뒤, 표의 줄을 복사해 붙여넣으세요. 머리글은 없어도 돼요. 지금 판매가와 이미 걸린 쿠폰을 보고 필요한 할인을 계산해요.</p>
+    <p class="help">1번의 <b>[세일즈원에서 2·3번 불러오기]</b>를 쓰면 자동으로 채워져요. 직접 넣으려면 세일즈원 <b>상품코드 쿠폰조회</b>에서 위 상품들을 조회(진행상태: 전체)한 뒤, 표의 줄을 복사해 붙여넣으세요. 머리글은 없어도 돼요. 지금 판매가와 이미 걸린 쿠폰을 보고 필요한 할인을 계산해요.</p>
     <textarea id="paste" spellcheck="false" placeholder="1130687399	SJ WANI 니트 베스트 1종	99900	48	45.27	261085930	10% 앱할인 쿠폰	03	Sun Oct 11 2026 00:00:00 GMT+0900 (한국 표준시)	Tue Oct 13 2026 23:59:59 GMT+0900 (한국 표준시)	1	5	5	YC	Y	김지연"></textarea>
     <div class="count" id="pasteCount"></div>
     <details class="adv">
@@ -168,7 +169,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
 
   <section class="card" id="sec3">
     <h2><span class="badge opt">3</span>매입형태 (직매입 / 위수탁) <span class="optional">선택 · 반반 부담 쿠폰을 만들 때</span></h2>
-    <p class="help">세일즈원 <b>상품관리 &gt; 상품 조회/수정</b>에서 위 상품을 조회한 뒤 표의 줄을 복사해 붙여넣으세요. <b>직매입 → 당사 100%</b>, <b>위수탁 → 당사·협력사 반반</b>으로 부담을 정해요. 안 넣으면 모두 당사 부담으로 계산해요.</p>
+    <p class="help">1번의 <b>[세일즈원에서 2·3번 불러오기]</b>를 쓰면 자동으로 채워져요. 직접 넣으려면 세일즈원 <b>상품관리 &gt; 상품 조회/수정</b>에서 위 상품을 조회한 뒤 표의 줄을 복사해 붙여넣으세요. <b>직매입 → 당사 100%</b>, <b>위수탁 → 당사·협력사 반반</b>으로 부담을 정해요. 안 넣으면 모두 당사 부담으로 계산해요.</p>
     <textarea id="dealpaste" spellcheck="false" style="min-height:60px" placeholder="1130687399	위수탁"></textarea>
     <div class="count" id="dealCount"></div>
   </section>
@@ -210,6 +211,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
     <section class="card next" id="nextcard">
       <h2><span class="badge">4</span>다음 단계: 세일즈원에 넣기</h2>
       <div class="row" style="margin:6px 0 10px">
+        <button id="sendagent" class="big" disabled style="display:none" title="세일즈원 창의 쿠폰 에이전트에 만든 쿠폰을 바로 보내요">에이전트로 보내기</button>
         <button id="cpfill" class="big" disabled title="세일즈원 쿠폰등록 화면의 개발자도구 콘솔에 붙여넣으면 쿠폰 에이전트가 열려요">세일즈원 입력 코드 복사</button>
         <span class="muted" id="cphint"></span>
       </div>
@@ -217,6 +219,7 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
         <div class="row" style="margin:0 0 6px"><button id="copyagain" class="ghost">다시 복사</button><span id="copymsg" style="font-weight:600"></span></div>
         <textarea id="copyta" readonly style="min-height:70px"></textarea>
       </div>
+      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창의 에이전트에서 이 화면을 열었다면 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
       <ol>
         <li>위 <b>[세일즈원 입력 코드 복사]</b>를 누르세요.</li>
         <li>세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 화면에서 <kbd>F12</kbd> → <b>Console</b> 탭을 여세요.</li>
@@ -1082,7 +1085,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-20b'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-22a'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1143,11 +1146,12 @@ $('make').addEventListener('click', () => {
   for (const [pc, i] of info) if (i.name && !lastInfo.names.has(pc)) lastInfo.names.set(pc, i.name);
   $('gennotes').innerHTML = '<tr><th>상태</th><th>상품코드</th><th>상품명</th><th>현재 판매가</th><th>입력</th><th>최종가</th><th>쿠폰</th><th>계산</th></tr>' +
     plan.notes.map((n) => `<tr><td><span class="lv lv-${st[n.status]}">${n.status}</span></td><td>${esc(n.product)}</td><td>${esc(n.name)}</td><td class="num">${won(n.price)}</td><td>${esc(n.input || '')}</td><td class="num">${n.target != null ? won(n.target) : ''}</td><td>${esc(n.planId || '')}</td><td>${esc(n.message)}</td></tr>`).join('');
-  $('cpfill').disabled = !plan.plannedCoupons.length;
+  $('cpfill').disabled = !plan.plannedCoupons.length; $('sendagent').disabled = !plan.plannedCoupons.length;
   $('cphint').textContent = plan.plannedCoupons.length ? '' : '만들 쿠폰이 없어서 복사 버튼이 꺼져 있어요.'; $('copybox').style.display = 'none';
   $('genCount').textContent = `쿠폰 ${plan.plannedCoupons.length}장 · 상품 ${plan.mappings.length}개`;
   run({ plannedCoupons: plan.plannedCoupons, mappings: plan.mappings, current: plan.current }, '붙여넣은 조회 결과');
   setStep(plan.plannedCoupons.length ? 4 : 3);
+  if (agent.win && plan.plannedCoupons.length) sendPlan();
   $('genout').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
@@ -1166,6 +1170,47 @@ function run(input, src) {
 
 // 세일즈원 입력 도우미: 저장·승인은 누르지 않고 칸만 채운다 (tools/filler.js)
 const planForFiller = () => JSON.stringify({ plannedCoupons: plan.plannedCoupons, mappings: plan.mappings.map((m) => ({ 계획ID: m['계획ID'], 상품코드: m['상품코드'] })) });
+
+// ---------- 세일즈원 창의 쿠폰 에이전트와 연결 (2026-10-22) ----------
+// 에이전트 창이 [🔎 사전검증 열기]로 이 화면을 열면(window.opener), postMessage로 조회 결과를 받고 만든 쿠폰을 보낸다.
+const agent = { win: null, origin: null, version: '' };
+const agentSend = (m) => { try { agent.win.postMessage(m, agent.origin === 'null' ? '*' : agent.origin); } catch {} };
+function sendPlan() {
+  if (!agent.win || !plan) return;
+  agentSend({ type: 'cpn-plan', plan: JSON.parse(planForFiller()) });
+  $('cphint').textContent = '에이전트에 보내는 중…';
+}
+window.addEventListener('message', (e) => {
+  const d = e.data; if (!d || typeof d !== 'object' || !String(d.type || '').startsWith('cpn-')) return;
+  if (e.source !== window.opener) return; // 이 화면을 연 에이전트 창의 말만 듣는다
+  if (d.type === 'cpn-ready') {
+    agent.win = e.source; agent.origin = e.origin; agent.version = d.version || '';
+    $('fetchso').disabled = !d.canLookup; $('fetchso').classList.remove('ghost');
+    $('fetchhint').textContent = d.canLookup ? '세일즈원 창과 연결됐어요. 1번에 상품코드를 넣고 누르면 2·3번이 채워져요.' : '세일즈원 창과 연결됐지만 그 에이전트 코드가 옛 버전이라 불러오기는 안 돼요. 최신 에이전트 코드를 써 주세요.';
+    $('sendagent').style.display = ''; $('sendagent').disabled = !(plan && plan.plannedCoupons.length);
+    return;
+  }
+  if (d.type === 'cpn-result') {
+    $('fetchso').disabled = false;
+    if (d.error) { $('fetchhint').textContent = '못 불러왔어요: ' + d.error; return; }
+    $('paste').value = d.coupons || ''; $('dealpaste').value = d.products || '';
+    for (const id of ['paste', 'dealpaste']) $(id).dispatchEvent(new Event('input', { bubbles: true }));
+    $('fetchhint').textContent = `불러왔어요: 쿠폰조회 ${d.couponCount}줄, 상품 ${d.productCount}건.${d.note ? ' ' + d.note : ''} 이제 [쿠폰 만들기]를 누르세요.`;
+    return;
+  }
+  if (d.type === 'cpn-plan-ok') {
+    $('cphint').textContent = d.error ? '에이전트에 보내지 못했어요: ' + d.error : `✓ 세일즈원 창의 에이전트에 쿠폰 ${d.count}장을 보냈어요. 그 창에서 [쿠폰 전부 등록 시작]을 누르세요.`;
+  }
+});
+$('fetchso').addEventListener('click', () => {
+  const codes = parseTargets($('targets').value).map((t) => t.product);
+  if (!codes.length) { alert('1번에 상품코드를 먼저 넣어 주세요.'); return; }
+  if (!agent.win) return;
+  $('fetchso').disabled = true; $('fetchhint').textContent = `세일즈원에서 상품 ${new Set(codes).size}개를 조회하는 중… (세일즈원 창을 보면 진행이 보여요)`;
+  agentSend({ type: 'cpn-lookup', codes: [...new Set(codes)] });
+});
+$('sendagent').addEventListener('click', sendPlan);
+if (window.opener) { let n = 0; const hi = () => { try { window.opener.postMessage({ type: 'cpn-hello' }, '*'); } catch {} if (++n < 5 && !agent.win) setTimeout(hi, 1000 * n); }; hi(); }
 // 회사 PC에서는 클립보드 권한·알림창이 막혀 있을 수 있어, 화면 안에 결과를 보여주고 옛 방식(execCommand) 복사부터 시도한다.
 let lastCopyMsg = '';
 function copyText(t, msg) {
@@ -1282,7 +1327,61 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-20b';
+  const VERSION = '2026-10-22a';
+  // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
+  const SO = (() => {
+// 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
+// 쿠폰관리 > 상품코드 쿠폰조회: POST .../bff/coupon/v1/management/query/coupon-list-by-prdcds → { list: [...] }
+// 상품 조회/수정: POST .../bff/product/v1/management/query/products → { list: [...] }
+const COUPON_API_RE = /coupon-list-by-prdcds/;
+const PRODUCT_API_PATH = '/bff/product/v1/management/query/products?page=1&size=10000';
+
+const COUPON_COLUMNS = ['상품코드', '상품명', '판매가', '원마진율', '실마진율', '쿠폰코드', '쿠폰설명', '노출쿠폰명', '결재상태', '시작일시', '종료일시', '쿠폰타입', '당사적용율/액', '협력사적용율/액', '최대할인금액', '사용가능최소판매가격', '상품적용타입', '채널제한타입', '쿠폰구분', '행사종류', '등록자'];
+const PRODUCT_COLUMNS = ['상품코드', '상품명(송장)', '판매가(VAT포함)', '마진율(VAT포함)', 'GS가', '쿠폰번호', '쿠폰할인액', '매입형태', '브랜드명'];
+
+// 매입형태 코드 (사용자 조사 2026-10-22: 03 = 위수탁, 01 = 직매입(마진 66%인 상품이 01). 그 밖의 코드는 모름)
+const PRCH_TYPE = { '01': '직매입', '03': '위수탁' };
+const APRV = { '01': '신규', '02': '승인요청', '03': '승인', '04': '반려' };
+
+const s = (v) => (v === null || v === undefined ? '' : String(v));
+const dt = (v) => s(v).replace('T', ' ').slice(0, 19);
+
+function couponRowsFromApi(list) {
+  return (list || []).map((x) => ({
+    상품코드: s(x.prdCd), 상품명: s(x.prdNm), 판매가: s(x.khsPrice), 원마진율: s(x.maginRate), 실마진율: s(x.realMaginRate),
+    쿠폰코드: s(x.cpnNo), 쿠폰설명: s(x.cpnNm), 노출쿠폰명: s(x.cpnSntncCntnt), 결재상태: APRV[s(x.cpnAprvStCd)] || s(x.cpnAprvStCd),
+    시작일시: dt(x.validStrDtm), 종료일시: dt(x.validEndDtm), 쿠폰타입: s(x.cpnTypCd) === '2' ? '정액할인' : s(x.cpnTypCd) === '1' ? '정률할인' : s(x.cpnTypCd),
+    '당사적용율/액': s(x.gshsDcRtamt), '협력사적용율/액': s(x.supDcRtamt), 최대할인금액: s(x.maxDcAmt), 사용가능최소판매가격: s(x.prdMinSalePrc),
+    상품적용타입: s(x.cpnTgtTypCd), 채널제한타입: s(x.chanlLimitTypCd),
+    쿠폰구분: s(x.cpnGbnCd) === 'D' ? '더블쿠폰' : s(x.cpnGbnCd) === 'N' ? '일반쿠폰' : s(x.cpnGbnCd),
+    행사종류: /^CC/.test(s(x.cpnEventKindCd)) ? '고객쿠폰' : s(x.cpnEventKindCd) ? '상품쿠폰' : '',
+    등록자: s(x.regrNm),
+  }));
+}
+
+function productRowsFromApi(list) {
+  return (list || []).map((x) => ({
+    상품코드: s(x.prdCd), '상품명(송장)': s(x.prdNm), '판매가(VAT포함)': s(x.salePrc), '마진율(VAT포함)': s(x.margRt), GS가: s(x.flgdPrc),
+    쿠폰번호: s(x.optmlCpnNo), 쿠폰할인액: s(x.optmlCpnDcAmt), 매입형태: PRCH_TYPE[s(x.prchTypCd)] || (s(x.prchTypCd) ? `매입형태코드 ${s(x.prchTypCd)}` : ''), 브랜드명: s(x.brandNm),
+  }));
+}
+
+// 머리글 포함 탭 구분 글. 칸 안의 탭·줄바꿈은 공백으로.
+function toTSV(rows, columns) {
+  const cell = (v) => s(v).replace(/[\t\r\n]+/g, ' ');
+  return [columns.join('\t'), ...rows.map((r) => columns.map((c) => cell(r[c])).join('\t'))].join('\n');
+}
+
+// 상품 조회 요청 본문 (사용자 조사 2026-10-22의 실제 요청 그대로, 상품코드만 바꿔 넣는다)
+function productQueryBody(codes, today = new Date()) {
+  const d = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+  const from = new Date(today.getTime() - 7 * 86400000);
+  return JSON.stringify({ addCmposGbnCd: null, gftTypCds: null, prchTypCd: null, prdSrchGbn: 'GENERAL', prdCd: null, multiPrdCd: codes.join('|'), supSrchGbn: 'GENERAL', supCd: null, operMdId: null, myMdId: null, saleStCd: null, prdNm: null, exposPrdNm: null, brandCd: null, itemCd: null, prdClsCd: null, dlvPickMthodCd: null, dlvsCoCd: null, saleEndRsnCd: null, paraImPrdYn: 'N', ecCbmgExcpt: true, dtGubun: 'REG', fromModDtm: `${d(from)}T00:00:00`, toModDtm: `${d(today)}T23:59:59` });
+}
+
+return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, couponRowsFromApi, productRowsFromApi, toTSV, productQueryBody };
+})();
+  const VALIDATOR_URL = 'https://sleepychoonsik.github.io/coupon-agent-site/';
   if (window.__cpnFiller?.v === VERSION) { window.__cpnFiller.open(PLAN); return; }
   // 예전 버전이 열려 있으면(새로고침 없이 새 코드를 붙여넣은 경우) 닫고 새 버전으로 연다
   if (window.__cpnFiller) {
@@ -1500,6 +1599,86 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
   const codes = () => store.get('codes', {}); // 계획ID → 세일즈원 쿠폰코드
   const setCode = (id, code) => { const c = codes(); if (code) c[id] = code; else delete c[id]; store.set('codes', c); };
 
+  // ---------- 세일즈원 조회 결과 불러오기 (사용자 요청 2026-10-22) ----------
+  // 사전검증 화면(github.io)은 세일즈원을 볼 수 없어서, 이 창이 대신 [조회]를 누르고 서버 응답을 받아 넘겨준다.
+  // 응답은 화면이 쓰는 XHR을 잡아서 읽는다(표는 보이는 줄만 그려져 전체를 못 읽음, 사용자 조사 2026-10-22).
+  const net = { log: [], headers: null };
+  if (!window.__cpnNetHook) {
+    window.__cpnNetHook = true;
+    const oo = XMLHttpRequest.prototype.open, os = XMLHttpRequest.prototype.send, oh = XMLHttpRequest.prototype.setRequestHeader;
+    XMLHttpRequest.prototype.open = function (m, u, ...r) { this.__cpn = { m, u: String(u), h: {} }; return oo.call(this, m, u, ...r); };
+    XMLHttpRequest.prototype.setRequestHeader = function (k, v) { if (this.__cpn) this.__cpn.h[k] = v; return oh.call(this, k, v); };
+    XMLHttpRequest.prototype.send = function (...a) {
+      this.addEventListener('loadend', () => {
+        const c = this.__cpn; if (!c) return;
+        let t = ''; try { t = typeof this.response === 'string' ? this.response : JSON.stringify(this.response); } catch {}
+        const hook = window.__cpnNetLog; if (hook) hook({ url: c.u, method: c.m, status: this.status, headers: c.h, withCredentials: this.withCredentials, body: t, at: Date.now() });
+      });
+      return os.apply(this, a);
+    };
+  }
+  window.__cpnNetLog = (e) => { net.log.push(e); if (net.log.length > 30) net.log.shift(); if (/gshs\.co\.kr|\/bff\//.test(e.url) && e.status === 200) net.headers = { url: e.url, h: e.headers, wc: e.withCredentials }; };
+
+  const tabBtn = (t) => [...document.querySelectorAll('[role=tab]')].find((b) => vis(b) && b.textContent.replace(/\s+/g, '') === t.replace(/\s+/g, ''));
+  const selectedTab = () => [...document.querySelectorAll('[role=tab][aria-selected=true]')].filter(vis).map((b) => b.textContent.trim());
+  async function goTab(t) {
+    const b = tabBtn(t); if (!b) return false;
+    if (b.getAttribute('aria-selected') === 'true') return true;
+    press(b); await sleep(300); if (!tabBtn(t)?.hasAttribute('aria-selected')) return true; return !!(await waitFor(() => tabBtn(t)?.getAttribute('aria-selected') === 'true', 2000));
+  }
+  let lookupBusy = false;
+  async function lookupCodes(codes) {
+    if (!SO) return { error: '이 에이전트 코드에는 조회 변환기가 없어요. 사전검증 화면이나 설명서에서 받은 최신 에이전트 코드를 써 주세요.' };
+    codes = [...new Set((codes || []).map((c) => String(c).trim()).filter((c) => /^\d{6,}$/.test(c)))];
+    if (!codes.length) return { error: '상품코드가 없어요.' };
+    if (lookupBusy) return { error: '아직 앞의 조회가 진행 중이에요.' };
+    lookupBusy = true; const wasReg = selectedTab().includes('쿠폰등록');
+    try {
+      status = `세일즈원에서 상품 ${codes.length}개 조회 중…`; render();
+      if (!(await goTab('상품코드 쿠폰조회'))) return { error: '[상품코드 쿠폰조회] 탭을 못 찾았어요. 쿠폰관리 화면에서 실행해 주세요.' };
+      const inp = await waitFor(() => { const all = [...document.querySelectorAll('input[placeholder="상품코드"], input[name="prdCds"]')].filter((x) => vis(x) && !host.contains(x)); return all.find((x) => x.placeholder === '상품코드') || all[0]; }, 3000);
+      if (!inp) return { error: '상품코드 입력칸을 못 찾았어요.' };
+      typeInto(inp, codes.join(','));
+      await sleep(150);
+      if (inp.value !== codes.join(',')) { inp.focus(); inp.select?.(); try { document.execCommand('insertText', false, codes.join(',')); } catch {} await sleep(100); }
+      const q = buttonByText('조회').filter((b) => !host.contains(b)).sort((a, b) => (/contained/.test(b.className) ? 1 : 0) - (/contained/.test(a.className) ? 1 : 0))[0];
+      if (!q) return { error: '[조회] 버튼을 못 찾았어요.' };
+      const t0 = Date.now(); press(q);
+      const hit = await waitFor(() => net.log.find((e) => e.at >= t0 && SO.COUPON_API_RE.test(e.url)), 20000);
+      if (!hit) return { error: '[조회]를 눌렀는데 응답을 못 받았어요(20초). 화면에 결과가 떴는지 확인해 주세요.' };
+      if (hit.status !== 200) return { error: `쿠폰조회 응답 오류 (${hit.status})` };
+      let cj; try { cj = JSON.parse(hit.body); } catch { return { error: '쿠폰조회 응답을 읽지 못했어요.' }; }
+      const clist = cj.list || cj.data?.list || [];
+      const out = { coupons: SO.toTSV(SO.couponRowsFromApi(clist), SO.COUPON_COLUMNS), couponCount: clist.length, products: '', productCount: 0, note: '' };
+      // 상품 조회/수정은 화면을 옮기지 않고, 방금 조회와 같은 머리글로 서버에 직접 묻는다
+      status = `쿠폰 ${clist.length}줄 받음, 상품 정보 조회 중…`; render();
+      try {
+        const h = { ...(hit.headers || {}) }; delete h['content-length']; delete h['Content-Length']; if (!Object.keys(h).some((k) => /^content-type$/i.test(k))) h['Content-Type'] = 'application/json';
+        const url = new URL(hit.url).origin + SO.PRODUCT_API_PATH;
+        const r = await fetch(url, { method: 'POST', headers: h, body: SO.productQueryBody(codes), credentials: hit.withCredentials ? 'include' : 'same-origin' });
+        if (!r.ok) throw new Error(`상태 ${r.status}`);
+        const pj = await r.json(); const plist = pj.list || pj.data?.list || [];
+        out.products = SO.toTSV(SO.productRowsFromApi(plist), SO.PRODUCT_COLUMNS); out.productCount = plist.length;
+        const missing = codes.filter((c) => !plist.some((p) => String(p.prdCd) === c));
+        if (missing.length) out.note = `상품 조회/수정에 없는 상품: ${missing.join(', ')}`;
+      } catch (e) { out.note = `상품 조회/수정 정보는 못 받았어요(${e.message}). 3번은 직접 붙여넣어 주세요.`; }
+      return out;
+    } catch (e) { return { error: `조회 중 오류: ${e.message}` }; }
+    finally { if (wasReg) await goTab('쿠폰등록'); lookupBusy = false; status = ''; render(); }
+  }
+
+  // 사전검증 화면과의 연결 (window.open으로 연 창과 postMessage로 주고받는다)
+  let validatorWin = null;
+  const openValidator = () => { const u = window.__cpnValidatorUrl || VALIDATOR_URL; validatorWin = window.open(u, 'cpnValidator'); if (!validatorWin) alert('팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용해 주세요.'); };
+  const trusted = (e) => e.origin === 'https://sleepychoonsik.github.io' || (e.source && e.source === validatorWin);
+  window.addEventListener('message', async (e) => {
+    const d = e.data; if (!d || typeof d !== 'object' || !String(d.type || '').startsWith('cpn-') || !trusted(e)) return;
+    const reply = (m) => { try { e.source.postMessage(m, e.origin === 'null' ? '*' : e.origin); } catch {} };
+    if (d.type === 'cpn-hello') { validatorWin = validatorWin || e.source; reply({ type: 'cpn-ready', version: VERSION, canLookup: !!SO }); return; }
+    if (d.type === 'cpn-lookup') { const r = await lookupCodes(d.codes); reply({ type: 'cpn-result', ...r }); return; }
+    if (d.type === 'cpn-plan') { try { window.__cpnFiller.open(d.plan); reply({ type: 'cpn-plan-ok', count: (plan?.coupons || []).length }); } catch (err) { reply({ type: 'cpn-plan-ok', error: err.message }); } }
+  });
+
   // ---------- 패널 ----------
   const host = document.createElement('div');
   // pointer-events: 창 상자(.p)만 클릭을 받고, 그 밖의 투명한 영역은 세일즈원 화면이 받는다 (접어도 자리가 안 눌린 일 2026-10-12)
@@ -1545,11 +1724,12 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
     .sec .t{font-weight:700;font-size:12px;color:#57606a;margin-bottom:4px}
     .hint{font-size:11px;color:#8b949e;margin-top:4px}
   </style>
-  <div class="p"><div class="h"><span>🤖 쿠폰 에이전트</span><button class="g" id="side">옮기기</button><button class="g" id="min">▲접기</button><button class="g" id="x">닫기</button></div><div class="b" id="body"></div></div>`;
+  <div class="p"><div class="h"><span>🤖 쿠폰 에이전트</span><button class="g" id="val" title="쿠폰 사전검증 화면을 새 창으로 열어요. 거기서 [세일즈원에서 불러오기]로 조회 결과를 가져오고, 만든 쿠폰을 이 창으로 보낼 수 있어요">🔎 사전검증 열기</button><button class="g" id="side">옮기기</button><button class="g" id="min">▲접기</button><button class="g" id="x">닫기</button></div><div class="b" id="body"></div></div>`;
   document.body.appendChild(host);
   const $ = (s) => root.querySelector(s);
   const body = $('#body');
   $('#x').onclick = () => { host.remove(); delete window.__cpnFiller; clearMarks(); };
+  $('#val').onclick = openValidator;
   $('#min').onclick = () => { const open = body.style.display === 'none'; body.style.display = open ? '' : 'none'; $('#min').textContent = open ? '▲접기' : '▼열기'; $('.p').style.width = open ? '' : 'max-content'; };
   // 도우미 창이 세일즈원 [저장]을 가리지 않게 왼쪽/오른쪽으로 옮긴다 (사용자 지적 2026-10-12). 고른 쪽은 기억.
   const setSide = (side) => {
@@ -1580,8 +1760,8 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 
   function render() {
     if (!plan || !plan.coupons.length) {
-      body.innerHTML = `<p style="margin:0 0 6px">등록할 쿠폰이 없어요. 사전검증 도구에서 <b>쿠폰 만들기</b> → <b>[세일즈원 입력 코드 복사]</b>를 누른 뒤, 그 코드를 이 화면의 콘솔에 다시 붙여넣으면 여기에 쿠폰이 채워져요.</p>
-        <div class="hint">계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
+      body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.</p>
+        <div class="hint">예전 방식(검증 화면의 [세일즈원 입력 코드 복사] → 콘솔에 붙여넣기)도 그대로 돼요. 계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
       $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 사전검증 도구에서 복사한 코드를 콘솔에 붙여넣어 주세요.'); } };
       return;
     }
