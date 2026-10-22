@@ -7,7 +7,7 @@
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22e';
+  const VERSION = '2026-10-22f';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
@@ -292,8 +292,9 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
       this.addEventListener('loadend', () => {
         const c = this.__cpn; if (!c) return;
         let t = ''; try { t = typeof this.response === 'string' ? this.response : JSON.stringify(this.response); } catch {}
-        const hook = window.__cpnNetLog; if (hook) hook({ url: c.u, method: c.m, status: this.status, headers: c.h, withCredentials: this.withCredentials, body: t, at: Date.now() });
+        const hook = window.__cpnNetLog; if (hook) hook({ url: c.u, method: c.m, status: this.status, headers: c.h, withCredentials: this.withCredentials, body: t, req: c.req || '', at: Date.now() });
       });
+      try { this.__cpn.req = typeof a[0] === 'string' ? a[0] : ''; } catch {}
       return os.apply(this, a);
     };
   }
@@ -318,18 +319,32 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
       if (!(await goTab('상품코드 쿠폰조회'))) return { error: '[상품코드 쿠폰조회] 탭을 못 찾았어요. 쿠폰관리 화면에서 실행해 주세요.' };
       const inp = await waitFor(() => { const all = [...document.querySelectorAll('input[placeholder="상품코드"], input[name="prdCds"]')].filter((x) => vis(x) && !host.contains(x)); return all.find((x) => x.placeholder === '상품코드') || all[0]; }, 3000);
       if (!inp) return { error: '상품코드 입력칸을 못 찾았어요.' };
-      typeInto(inp, codes.join(','));
-      await sleep(150);
-      if (inp.value !== codes.join(',')) { inp.focus(); inp.select?.(); try { document.execCommand('insertText', false, codes.join(',')); } catch {} await sleep(100); }
       const q = buttonByText('조회').filter((b) => !host.contains(b)).sort((a, b) => (/contained/.test(b.className) ? 1 : 0) - (/contained/.test(a.className) ? 1 : 0))[0];
       if (!q) return { error: '[조회] 버튼을 못 찾았어요.' };
-      const t0 = Date.now(); press(q);
-      const hit = await waitFor(() => net.log.find((e) => e.at >= t0 && SO.COUPON_API_RE.test(e.url)), 20000);
-      if (!hit) return { error: '[조회]를 눌렀는데 응답을 못 받았어요(20초). 화면에 결과가 떴는지 확인해 주세요.' };
-      if (hit.status !== 200) return { error: `쿠폰조회 응답 오류 (${hit.status})` };
-      let cj; try { cj = JSON.parse(hit.body); } catch { return { error: '쿠폰조회 응답을 읽지 못했어요.' }; }
-      const clist = cj.list || cj.data?.list || [];
-      const out = { coupons: SO.toTSV(SO.couponRowsFromApi(clist), SO.COUPON_COLUMNS), couponCount: clist.length, products: '', productCount: 0, note: '' };
+      // 상품이 많으면 나눠서 조회한다 (2026-10-22 실제: 49개를 한 번에 넣었더니 쿠폰조회가 0줄로 옴. 8개는 됐음). 응답은 요청 본문에 그 묶음의 코드가 든 것만 받는다
+      const BATCH = 10;
+      const clist = []; const seenKey = new Set(); let hit = null; let askedTotal = 0; const notes = [];
+      for (let i = 0; i < codes.length; i += BATCH) {
+        const part = codes.slice(i, i + BATCH); const joined = part.join(',');
+        status = `세일즈원에서 상품 조회 중… (${Math.min(i + BATCH, codes.length)}/${codes.length})`; render();
+        typeInto(inp, joined);
+        await sleep(150);
+        if (inp.value !== joined) { inp.focus(); inp.select?.(); try { document.execCommand('insertText', false, joined); } catch {} await sleep(100); }
+        if (inp.value !== joined) notes.push(`입력칸에 ${part.length}개 중 일부만 들어갔어요(${inp.value.length}자)`);
+        const t0 = Date.now(); press(q);
+        const h = await waitFor(() => net.log.find((e) => e.at >= t0 && SO.COUPON_API_RE.test(e.url) && (!e.req || e.req.includes(part[0]))), 20000);
+        if (!h) return { error: `[조회]를 눌렀는데 응답을 못 받았어요(20초, ${i + 1}번째 묶음). 화면에 결과가 떴는지 확인해 주세요.` };
+        if (h.status !== 200) return { error: `쿠폰조회 응답 오류 (${h.status})` };
+        let cj; try { cj = JSON.parse(h.body); } catch { return { error: '쿠폰조회 응답을 읽지 못했어요.' }; }
+        let asked = part.length; try { const rb = JSON.parse(h.req || '{}'); if (Array.isArray(rb.prdCds)) asked = rb.prdCds.filter(Boolean).length; } catch {}
+        askedTotal += asked;
+        for (const row of (cj.list || cj.data?.list || [])) { const k = `${row.prdCd}|${row.cpnNo}`; if (!seenKey.has(k)) { seenKey.add(k); clist.push(row); } }
+        hit = h;
+        await sleep(300);
+      }
+      if (askedTotal < codes.length) notes.push(`조회 요청에 상품 ${askedTotal}개만 담겼어요(${codes.length}개 중)`);
+      if (codes.length > BATCH) notes.push(`${Math.ceil(codes.length / BATCH)}번에 나눠 조회했어요`);
+      const out = { coupons: SO.toTSV(SO.couponRowsFromApi(clist), SO.COUPON_COLUMNS), couponCount: clist.length, products: '', productCount: 0, note: notes.join('. ') };
       // 상품 조회/수정은 화면을 옮기지 않고, 방금 조회와 같은 머리글로 서버에 직접 묻는다
       status = `쿠폰 ${clist.length}줄 받음, 상품 정보 조회 중…`; render();
       try {
@@ -340,8 +355,12 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
         const pj = await r.json(); const plist = pj.list || pj.data?.list || [];
         out.products = SO.toTSV(SO.productRowsFromApi(plist), SO.PRODUCT_COLUMNS); out.productCount = plist.length;
         const missing = codes.filter((c) => !plist.some((p) => String(p.prdCd) === c));
-        if (missing.length) out.note = `상품 조회/수정에 없는 상품: ${missing.join(', ')}`;
-      } catch (e) { out.note = `상품 조회/수정 정보는 못 받았어요(${e.message}). 3번은 직접 붙여넣어 주세요.`; }
+        if (missing.length) notes.push(`상품 조회/수정에 없는 상품: ${missing.join(', ')}`);
+        // 쿠폰조회는 비었는데 상품 정보에는 쿠폰이 걸려 있으면 조회가 잘못된 것 → 알려 준다
+        const withCpn = plist.filter((p) => p.optmlCpnNo).length;
+        if (withCpn && !clist.length) notes.push(`⚠ 쿠폰조회는 0줄인데 상품 ${withCpn}개에 쿠폰이 걸려 있어요. 조회가 제대로 안 된 것 같으니 다시 눌러 보거나 2번을 직접 붙여넣어 주세요`);
+      } catch (e) { notes.push(`상품 조회/수정 정보는 못 받았어요(${e.message}). 3번은 직접 붙여넣어 주세요.`); }
+      out.note = notes.join('. ');
       return out;
     } catch (e) { return { error: `조회 중 오류: ${e.message}` }; }
     finally { if (wasReg) await goTab('쿠폰등록'); lookupBusy = false; status = ''; render(); }
