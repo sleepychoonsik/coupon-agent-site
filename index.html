@@ -877,6 +877,14 @@ function generatePlan(targets, currentRows, opts = {}) {
     });
     const gaps = checks.filter((x) => x.need > x.cur);
     if (!gaps.length) {
+      // 더블쿠폰만으로 기간 내내 원하는 가격이 되면 새 쿠폰은 필요 없다 (사용자 지정 2026-10-22)
+      const dblOnly = checks.every((x) => !x.at.general && x.at.double);
+      if (dblOnly) {
+        const d = now.double;
+        notes.push({ ...base, status: '쿠폰불필요', current: now.final,
+          message: `더블쿠폰 ${d.code}${d.desc ? ` '${d.desc}'` : ''}이 쿠폰 기간 내내 걸려 있어서(${fmtDate(d.start)}~${fmtDate(d.end)}) 이미 ${won(now.final)}이에요. 새 쿠폰을 안 만들어도 돼요.` });
+        continue;
+      }
       notes.push({ ...base, status: '확인필요', current: now.final,
         message: t.target != null
           ? `기존 쿠폰(${now.general?.code} ${now.general?.desc ?? ''})만으로 쿠폰 기간 내내 ${won(now.final)}입니다. 원하는 가격 ${won(t.target)}보다 ${now.final <= t.target ? '같거나 쌉니다' : '비싸지만 새 쿠폰을 붙여도 기존 쿠폰이 우선합니다'}. 가격을 올리려면 기존 쿠폰 연결을 끊어야 합니다.`
@@ -1092,7 +1100,7 @@ function markCoupons(rows, { doubles = [], customers = [], owners = CUSTOMER_COU
 const codeList = (text) => String(text || '').split(/[\s,]+/).filter((x) => /^\d{6,}$/.test(x));
 
 
-const APP_VERSION = '2026-10-22b'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
+const APP_VERSION = '2026-10-22c'; // 화면 상단에 표시 (사용자 요청 2026-10-16). 고칠 때마다 올린다
 const $ = (id) => document.getElementById(id);
 $('ver').textContent = 'v' + APP_VERSION; document.title += ' v' + APP_VERSION;
 let book = null, last = null, plan = null, lastCurrent = [], lastInfo = { names: new Map(), deals: new Map() };
@@ -1334,7 +1342,7 @@ for (const id of ['targets', 'paste', 'dealpaste']) { $(id).addEventListener('in
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22b';
+  const VERSION = '2026-10-22c';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
@@ -2479,7 +2487,9 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
       const used = new Set();
       // 파일칸: 탭 뒤에 있는 것을 먼저, 없으면 화면 어디든 (숨어 있어도 됨)
       const fileInputs = () => [...document.querySelectorAll('input[type=file]')].filter((x) => !host.contains(x) && !x.disabled && !used.has(x));
-      const fileInput = () => fileInputs().filter(isAfter).pop() || fileInputs()[0] || null;
+      // 실제 화면(2026-10-22 사용자): 파일칸이 3개(다른 구역 것 포함)이고 보이는 것은 하나뿐. 숨은 칸에 넣으면 목록에 안 뜨므로 보이는 칸(또는 보이는 버튼 안의 칸)을 먼저 고른다
+      const visF = (x) => vis(x) || vis(x.parentElement) || vis(x.closest('label'));
+      const fileInput = () => { const all = fileInputs(); return all.filter((x) => isAfter(x) && visF(x)).pop() || all.filter(visF)[0] || all.filter(isAfter).pop() || all[0] || null; };
       const putFile = (input) => { const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files; input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); used.add(input); };
       const code0 = String(rows[0][0]);
       // 올린 줄이 '대량등록예정목록' 표에 뜨면 쿠폰코드 글자가 보인다. 중간에 뜨는 [확인] 창은 눌러 준다
@@ -2514,6 +2524,13 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
             caught = null; press(up2); await sleep(700);
             if (!caught) { const inp2 = fileInput(); if (inp2) putFile(inp2); }
             if (await waitRows(7000)) break;
+          }
+          // 그래도 안 뜨면 아직 안 써 본 다른 파일칸에 차례로 넣어 본다
+          for (let k = 0; k < 3 && !codeLeaf(); k++) {
+            const inp3 = fileInput(); if (!inp3) break;
+            status = `다른 파일칸(${k + 2}번째)에 엑셀을 넣어 보는 중…`; render();
+            putFile(inp3);
+            if (await waitRows(5000)) break;
           }
         }
       } finally { disarm(); }
