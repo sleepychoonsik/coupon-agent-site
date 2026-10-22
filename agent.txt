@@ -7,7 +7,7 @@
 // 승인 모드에서는 [추가]·[저장]을 누르지 않고, 등록 모드에서는 [승인]을 누르지 않는다.
 (function cpnMain() {
   const PLAN = /*__PLAN__*/null;
-  const VERSION = '2026-10-22g';
+  const VERSION = '2026-10-22h';
   // 세일즈원 응답 → 표 변환기 (빌드 때 src/salesone.js가 들어감. 없으면 조회 불러오기는 못 쓴다)
   const SO = (() => {
 // 세일즈원 서버 응답(조회 결과 JSON)을 검증 도구가 읽는 표 모양으로 바꾼다 (2026-10-22, 사용자 조사 결과 기준).
@@ -53,13 +53,20 @@ function toTSV(rows, columns) {
 }
 
 // 상품 조회 요청 본문 (사용자 조사 2026-10-22의 실제 요청 그대로, 상품코드만 바꿔 넣는다)
+// 쿠폰조회 요청 본문. 화면이 보낸 요청(template)이 있으면 그 모양 그대로 상품코드만 바꾼다 (실제 본문 2026-10-22: {prdCd:"",prdCds:[...],prdNm:"",cpnStatus:"open",cpnNos:[]})
+function couponQueryBody(codes, template) {
+  let base = { prdCd: '', prdCds: [], prdNm: '', cpnStatus: 'open', cpnNos: [] };
+  try { const t = typeof template === 'string' ? JSON.parse(template) : template; if (t && typeof t === 'object' && !Array.isArray(t)) base = { ...base, ...t }; } catch {}
+  return JSON.stringify({ ...base, prdCd: '', prdCds: codes.map(String), prdNm: '' });
+}
+
 function productQueryBody(codes, today = new Date()) {
   const d = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
   const from = new Date(today.getTime() - 7 * 86400000);
   return JSON.stringify({ addCmposGbnCd: null, gftTypCds: null, prchTypCd: null, prdSrchGbn: 'GENERAL', prdCd: null, multiPrdCd: codes.join('|'), supSrchGbn: 'GENERAL', supCd: null, operMdId: null, myMdId: null, saleStCd: null, prdNm: null, exposPrdNm: null, brandCd: null, itemCd: null, prdClsCd: null, dlvPickMthodCd: null, dlvsCoCd: null, saleEndRsnCd: null, paraImPrdYn: 'N', ecCbmgExcpt: true, dtGubun: 'REG', fromModDtm: `${d(from)}T00:00:00`, toModDtm: `${d(today)}T23:59:59` });
 }
 
-return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, couponRowsFromApi, productRowsFromApi, toTSV, productQueryBody };
+return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, couponRowsFromApi, productRowsFromApi, toTSV, productQueryBody, couponQueryBody };
 })();
   const VALIDATOR_URL = 'https://sleepychoonsik.github.io/coupon-agent-site/';
   if (window.__cpnFiller?.v === VERSION) { window.__cpnFiller.open(PLAN); return; }
@@ -321,29 +328,46 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
       if (!inp) return { error: '상품코드 입력칸을 못 찾았어요.' };
       const q = buttonByText('조회').filter((b) => !host.contains(b)).sort((a, b) => (/contained/.test(b.className) ? 1 : 0) - (/contained/.test(a.className) ? 1 : 0))[0];
       if (!q) return { error: '[조회] 버튼을 못 찾았어요.' };
-      // 상품이 많으면 나눠서 조회한다 (2026-10-22 실제: 49개를 한 번에 넣었더니 쿠폰조회가 0줄로 옴. 8개는 됐음). 응답은 요청 본문에 그 묶음의 코드가 든 것만 받는다
-      const BATCH = 10;
-      const clist = []; const seenKey = new Set(); let hit = null; let askedTotal = 0; const notes = [];
-      for (let i = 0; i < codes.length; i += BATCH) {
-        const part = codes.slice(i, i + BATCH); const joined = part.join(',');
-        status = `세일즈원에서 상품 조회 중… (${Math.min(i + BATCH, codes.length)}/${codes.length})`; render();
-        typeInto(inp, joined);
-        await sleep(150);
-        if (inp.value !== joined) { inp.focus(); inp.select?.(); try { document.execCommand('insertText', false, joined); } catch {} await sleep(100); }
-        if (inp.value !== joined) notes.push(`입력칸에 ${part.length}개 중 일부만 들어갔어요(${inp.value.length}자)`);
+      // 실제 화면(2026-10-22): 상품코드 칸은 10자(코드 1개)만 받는다. 그래서 첫 코드만 화면으로 조회해 요청 모양·머리글을 얻고,
+      // 나머지는 같은 주소로 서버에 직접 묻는다(상품 조회/수정과 같은 방식). 직접 묻기가 안 되면 한 코드씩 화면으로 조회한다.
+      const clist = []; const seenKey = new Set(); const notes = []; let hit = null;
+      const addRows = (list) => { for (const row of list || []) { const k = `${row.prdCd}|${row.cpnNo}`; if (!seenKey.has(k)) { seenKey.add(k); clist.push(row); } } };
+      const uiQuery = async (code, label) => {
+        typeInto(inp, code); await sleep(150);
+        if (inp.value !== code) { inp.focus(); inp.select?.(); try { document.execCommand('insertText', false, code); } catch {} await sleep(100); }
         const t0 = Date.now(); press(q);
-        const h = await waitFor(() => net.log.find((e) => e.at >= t0 && SO.COUPON_API_RE.test(e.url) && (!e.req || e.req.includes(part[0]))), 20000);
-        if (!h) return { error: `[조회]를 눌렀는데 응답을 못 받았어요(20초, ${i + 1}번째 묶음). 화면에 결과가 떴는지 확인해 주세요.` };
-        if (h.status !== 200) return { error: `쿠폰조회 응답 오류 (${h.status})` };
-        let cj; try { cj = JSON.parse(h.body); } catch { return { error: '쿠폰조회 응답을 읽지 못했어요.' }; }
-        let asked = part.length; try { const rb = JSON.parse(h.req || '{}'); if (Array.isArray(rb.prdCds)) asked = rb.prdCds.filter(Boolean).length; } catch {}
-        askedTotal += asked;
-        for (const row of (cj.list || cj.data?.list || [])) { const k = `${row.prdCd}|${row.cpnNo}`; if (!seenKey.has(k)) { seenKey.add(k); clist.push(row); } }
-        hit = h;
-        await sleep(300);
+        const h = await waitFor(() => net.log.find((e) => e.at >= t0 && SO.COUPON_API_RE.test(e.url) && (!e.req || e.req.includes(code))), 20000);
+        if (!h) throw new Error(`[조회]를 눌렀는데 응답을 못 받았어요(20초${label ? ', ' + label : ''}). 화면에 결과가 떴는지 확인해 주세요.`);
+        if (h.status !== 200) throw new Error(`쿠폰조회 응답 오류 (${h.status})`);
+        let cj; try { cj = JSON.parse(h.body); } catch { throw new Error('쿠폰조회 응답을 읽지 못했어요.'); }
+        addRows(cj.list || cj.data?.list || []); return h;
+      };
+      status = `세일즈원에서 상품 조회 중… (1/${codes.length})`; render();
+      hit = await uiQuery(codes[0], '첫 상품');
+      const rest = codes.slice(1);
+      if (rest.length) {
+        let direct = false;
+        try {
+          const h = { ...(hit.headers || {}) }; delete h['content-length']; delete h['Content-Length']; if (!Object.keys(h).some((k) => /^content-type$/i.test(k))) h['Content-Type'] = 'application/json';
+          const CH = 30;
+          for (let i = 0; i < rest.length; i += CH) {
+            const part = rest.slice(i, i + CH);
+            status = `세일즈원 서버에 쿠폰 조회 중… (${Math.min(1 + i + CH, codes.length)}/${codes.length})`; render();
+            const r = await fetch(hit.url, { method: 'POST', headers: h, body: SO.couponQueryBody(part, hit.req), credentials: hit.withCredentials ? 'include' : 'same-origin' });
+            if (!r.ok) throw new Error(`상태 ${r.status}`);
+            const cj = await r.json(); addRows(cj.list || cj.data?.list || []);
+          }
+          direct = true;
+        } catch (e) {
+          notes.push(`서버에 직접 묻기는 안 돼서(${e.message}) 화면에서 한 상품씩 조회했어요`);
+        }
+        if (!direct) {
+          for (let i = 0; i < rest.length; i++) {
+            status = `세일즈원에서 상품 조회 중… (${i + 2}/${codes.length})`; render();
+            hit = await uiQuery(rest[i], `${i + 2}번째 상품`); await sleep(250);
+          }
+        }
       }
-      if (askedTotal < codes.length) notes.push(`조회 요청에 상품 ${askedTotal}개만 담겼어요(${codes.length}개 중)`);
-      if (codes.length > BATCH) notes.push(`${Math.ceil(codes.length / BATCH)}번에 나눠 조회했어요`);
       const out = { coupons: SO.toTSV(SO.couponRowsFromApi(clist), SO.COUPON_COLUMNS), couponCount: clist.length, products: '', productCount: 0, note: notes.join('. ') };
       // 상품 조회/수정은 화면을 옮기지 않고, 방금 조회와 같은 머리글로 서버에 직접 묻는다
       status = `쿠폰 ${clist.length}줄 받음, 상품 정보 조회 중…`; render();
