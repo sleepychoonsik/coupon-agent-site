@@ -1,4 +1,5 @@
 // 패션1팀 결과물을 복사해 범용(쿠폰 에이전트 전용) 버전을 general/ 에 만든다. 원본 파일은 읽기만 한다.
+// GitHub Actions(.github/workflows/sync-general.yml)가 1팀 파일이 바뀔 때마다 이 스크립트를 돌려 general/ 을 갱신한다.
 const fs = require('fs'), path = require('path');
 const R = process.argv[2]; const OUT = path.join(R, 'general'); fs.mkdirSync(OUT, { recursive: true });
 const read = (f) => fs.readFileSync(path.join(R, f), 'utf8').replace(/\r\n/g, '\n');
