@@ -139,6 +139,10 @@ gd = swapSection(gd, 'faq', `<section class="card" id="faq">
     </ul>
   </section>`);
 if (/콘솔|Console|F12|allow pasting/.test(gd.replace(/<script[\s\S]*?<\/script>/g, ''))) throw new Error('guide 본문에 콘솔 안내가 남음');
+// 상단 링크 카드에서 설명서 카드 빼기 (이 화면이 설명서라서)
+{ const a = gd.indexOf('<div class="link"><span class="link-i">📖</span>'); if (a < 0) throw new Error('설명서 카드 없음');
+  const b = gd.indexOf('</div>', a) + '</div>'.length; const s0 = gd.lastIndexOf('\n', a);
+  gd = gd.slice(0, s0) + gd.slice(b); }
 gd = gd.replace(/<title>([^<]*)<\/title>/, (m, t) => `<title>${t} (범용)</title>`);
 fs.writeFileSync(path.join(OUT, 'guide.html'), gd);
 
