@@ -71,7 +71,13 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
 .hist ul{margin:4px 0}
 @media print{nav,.copy,.copylink{display:none}.card{break-inside:avoid}body{background:#fff}}
 .muted{color:#5b6570;font-size:13px}
-.bmdrag{display:inline-block;padding:10px 18px;border-radius:999px;background:#1f6feb;color:#fff;font-weight:700;text-decoration:none;cursor:grab;box-shadow:0 1px 3px rgba(0,0,0,.2)}.bmdrag:active{cursor:grabbing}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0 6px}
+.pair-i{display:flex;flex-direction:column;gap:2px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--bg);font-size:14px;line-height:1.55}
+.pair-i>b{font-size:16px}
+.pair-n{font-size:12px;font-weight:700;color:var(--accent)}
+.flowfig{margin:14px 0 6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.flowfig svg{display:block;width:100%;min-width:600px;height:auto}
+.steps5 li{margin:6px 0}
 </style>
 </head>
 <body>
@@ -88,26 +94,97 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
   </div>
 
   <nav>
+    <a href="#overview">한눈에 보기</a>
     <a href="#start">북마크 만들기</a>
     <a href="#a1">쿠폰 에이전트</a>
     <a href="#faq">막히면</a>
   </nav>
 
-  <section class="card">
-    <h2>한눈에 보기</h2>
-    <div class="tools">
-      <div class="tool"><span class="num">등록하는 사람</span><span class="name">쿠폰 에이전트</span><span class="meta"><b>화면</b> 쿠폰관리 › 쿠폰등록</span><span class="what">상품코드와 원하는 가격(또는 할인율 15%·할인액 -9000)만 넣으면 쿠폰을 계산해 등록하고 상품까지 연결해요.</span></div>
+  <section class="card" id="overview">
+    <h2>한눈에 보기: 창 2개가 짝으로 움직여요</h2>
+    <div class="pair">
+      <div class="pair-i"><span class="pair-n">창 1</span><b>사전검증 페이지</b><span>이 사이트예요. 상품코드와 가격을 넣으면 쿠폰을 <b>계산</b>해요.</span></div>
+      <div class="pair-i"><span class="pair-n">창 2</span><b>세일즈원 + 🤖 에이전트 패널</b><span>북마크로 띄워요. 계산된 쿠폰을 세일즈원에 <b>입력·저장</b>해요.</span></div>
     </div>
+    <p>두 창은 서로 알아서 주고받아요. <b>복사·붙여넣기 없이 버튼만</b> 누르면 돼요.</p>
+    <div class="flowfig" role="img" aria-label="사전검증 페이지와 세일즈원 에이전트 패널이 주고받는 순서 그림">
+      <svg viewBox="0 0 760 372" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard, 'Malgun Gothic', system-ui, sans-serif">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--accent)"/></marker>
+        </defs>
+        <!-- 창 1: 사전검증 -->
+        <rect x="8" y="8" width="252" height="300" rx="12" style="fill:var(--card);stroke:var(--line)" stroke-width="1.5"/>
+        <rect x="8" y="8" width="252" height="36" rx="12" style="fill:var(--soft)"/>
+        <rect x="8" y="32" width="252" height="12" style="fill:var(--soft)"/>
+        <circle cx="26" cy="26" r="4" style="fill:var(--line)"/><circle cx="40" cy="26" r="4" style="fill:var(--line)"/>
+        <text x="134" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">창 1 · 사전검증 페이지</text>
+        <g font-size="12.5" style="fill:var(--sub)">
+          <rect x="24" y="60" width="220" height="40" rx="7" style="fill:var(--bg);stroke:var(--line)"/>
+          <text x="36" y="85">1 상품코드 | 가격·할인</text>
+          <rect x="24" y="110" width="220" height="40" rx="7" style="fill:var(--bg);stroke:var(--line)"/>
+          <text x="36" y="135">2·3 조회 결과 (자동으로 채워짐)</text>
+          <rect x="24" y="160" width="220" height="40" rx="7" style="fill:var(--bg);stroke:var(--line)"/>
+          <text x="36" y="185">기간 · 브랜드 · 팀구분</text>
+        </g>
+        <rect x="24" y="214" width="108" height="34" rx="7" style="fill:var(--accent)"/>
+        <text x="78" y="236" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">쿠폰 만들기</text>
+        <rect x="138" y="214" width="106" height="34" rx="7" style="fill:var(--card);stroke:var(--accent)"/>
+        <text x="191" y="236" text-anchor="middle" font-size="12.5" font-weight="700" style="fill:var(--accent)">세일즈원 열기</text>
+        <text x="134" y="282" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">🧮 계산하는 곳</text>
+
+        <!-- 창 2: 세일즈원 + 패널 -->
+        <rect x="500" y="8" width="252" height="300" rx="12" style="fill:var(--card);stroke:var(--line)" stroke-width="1.5"/>
+        <rect x="500" y="8" width="252" height="36" rx="12" style="fill:var(--soft)"/>
+        <rect x="500" y="32" width="252" height="12" style="fill:var(--soft)"/>
+        <circle cx="518" cy="26" r="4" style="fill:var(--line)"/><circle cx="532" cy="26" r="4" style="fill:var(--line)"/>
+        <text x="626" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">창 2 · 세일즈원 쿠폰등록</text>
+        <g style="fill:var(--line)"><rect x="516" y="58" width="140" height="10" rx="3"/><rect x="516" y="76" width="100" height="10" rx="3"/><rect x="516" y="94" width="120" height="10" rx="3"/></g>
+        <rect x="560" y="116" width="180" height="150" rx="10" style="fill:var(--card);stroke:var(--accent)" stroke-width="2"/>
+        <text x="650" y="140" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">🤖 에이전트 패널</text>
+        <rect x="574" y="152" width="152" height="30" rx="6" style="fill:var(--accent)"/>
+        <text x="650" y="172" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">남은 쿠폰 전부 등록</text>
+        <rect x="574" y="190" width="152" height="30" rx="6" style="fill:var(--card);stroke:var(--accent)"/>
+        <text x="650" y="210" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">상품-쿠폰 일괄 등록</text>
+        <text x="650" y="246" text-anchor="middle" font-size="11.5" style="fill:var(--sub)">승인은 누르지 않아요</text>
+        <text x="626" y="292" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">✍️ 세일즈원에 입력하는 곳</text>
+
+        <!-- 주고받기 화살표 -->
+        <g font-size="12.5" text-anchor="middle">
+          <line x1="268" y1="76" x2="492" y2="76" style="stroke:var(--accent)" stroke-width="2" marker-end="url(#ah)"/>
+          <text x="380" y="64" font-weight="700" style="fill:var(--ink)">① [세일즈원 열기]</text>
+          <text x="380" y="94" style="fill:var(--sub)">세일즈원이 새 창으로 열려요</text>
+
+          <line x1="268" y1="140" x2="492" y2="140" style="stroke:var(--accent)" stroke-width="2" marker-start="url(#ah)"/>
+          <text x="380" y="128" font-weight="700" style="fill:var(--ink)">② 북마크 🤖 클릭</text>
+          <text x="380" y="158" style="fill:var(--sub)">패널이 뜨고 "연결됐어요"</text>
+
+          <line x1="268" y1="204" x2="492" y2="204" style="stroke:var(--accent)" stroke-width="2" marker-start="url(#ah)" marker-end="url(#ah)"/>
+          <text x="380" y="192" font-weight="700" style="fill:var(--ink)">③ [2·3번 불러오기]</text>
+          <text x="380" y="222" style="fill:var(--sub)">패널이 조회해서 돌려줘요</text>
+
+          <line x1="268" y1="268" x2="492" y2="268" style="stroke:var(--accent)" stroke-width="2" marker-end="url(#ah)"/>
+          <text x="380" y="256" font-weight="700" style="fill:var(--ink)">④ [쿠폰 만들기]</text>
+          <text x="380" y="286" style="fill:var(--sub)">쿠폰이 패널로 자동 전송</text>
+        </g>
+        <text x="626" y="346" text-anchor="middle" font-size="13.5" font-weight="700" style="fill:var(--accent)">⑤ 패널에서 등록 → 일괄 등록</text>
+        <path d="M626 312 V326" style="stroke:var(--accent)" stroke-width="2" marker-end="url(#ah)"/>
+      </svg>
+    </div>
+    <ol class="steps5">
+      <li><b>사전검증 페이지</b>에서 <b class="btn">세일즈원 열기</b>를 눌러요.</li>
+      <li>열린 세일즈원 창에서 북마크 <b>🤖 쿠폰 에이전트</b>를 눌러요. 패널에 "검증 화면과 연결됐어요"가 나오면 준비 끝이에요.</li>
+      <li>사전검증 1번 칸에 상품코드·가격을 붙여넣고 기간·브랜드·팀구분을 적은 뒤 <b class="btn">세일즈원에서 2·3번 불러오기</b>를 눌러요.</li>
+      <li><b class="btn">쿠폰 만들기</b>를 누르면 만든 쿠폰이 패널로 자동으로 들어가요.</li>
+      <li>패널에서 <b class="btn">남은 쿠폰 전부 등록</b> → <b class="btn">상품-쿠폰 일괄 등록</b>을 누르면 끝이에요.</li>
+    </ol>
+    <p class="muted">처음이라면 아래 <a href="#start">북마크 만들기</a>를 먼저 해 주세요. 단계별 자세한 설명은 <a href="#a1">쿠폰 에이전트</a>에 있어요.</p>
   </section>
 
   <section class="card" id="start">
     <h2>처음 한 번만: 🤖 쿠폰 에이전트 북마크 만들기</h2>
     <p>쿠폰 에이전트는 크롬 <b>북마크</b>로 실행해요. 따로 설치하거나 코드를 붙여넣을 필요가 없어요. 북마크는 누를 때마다 <b>최신 버전</b>을 받아 오니, 한 번 만들면 다시 만들 필요가 없어요.</p>
     <p>먼저 크롬 북마크바가 보이게 해 주세요. 안 보이면 <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>B</kbd>.</p>
-    <h3>방법 1 · 끌어다 놓기 (가장 쉬워요)</h3>
-    <p>아래 버튼을 마우스로 잡아 <b>북마크바로 끌어다 놓으면</b> 끝이에요. (이 화면에서 누르면 실행되지 않고 안내만 나와요.)</p>
-    <p style="margin:12px 0"><a id="bmdrag" class="bmdrag" href="#" draggable="true">🤖 쿠폰 에이전트</a></p>
-    <h3>방법 2 · 직접 추가</h3>
+    <h3>북마크 등록하기</h3>
     <ol>
       <li><button class="copy" data-code="bookmarkCode">🤖 북마크 코드 복사</button>를 누릅니다.</li>
       <li>북마크바 빈 곳에서 오른쪽 클릭 → <b>페이지 추가</b>.</li>
@@ -159,7 +236,6 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
     <h2>막히면</h2>
     <ul>
       <li><b>북마크를 눌러도 아무 일이 없어요</b> → 세일즈원(nsalesone.gshs.co.kr) 쿠폰관리 화면에서 눌렀는지 확인해 주세요. 그래도 안 되면 북마크를 오른쪽 클릭 → 수정에서 URL이 <code>javascript:</code>로 시작하는지 보고, 아니면 지우고 다시 만들어 주세요.</li>
-      <li><b>끌어다 놓기가 안 돼요</b> → 방법 2(코드 복사 → 페이지 추가)로 만들어 주세요.</li>
       <li><b>에이전트 창이 안 보여요</b> → 세일즈원 화면 오른쪽([옮기기]를 눌렀다면 왼쪽)을 확인해 주세요. 새로고침했다면 북마크를 다시 누르세요.</li>
       <li><b>검증 화면과 안 이어져요</b> → 검증 화면의 <b class="btn">세일즈원 열기</b>로 연 세일즈원 창에서 북마크를 눌러야 이어져요. 세일즈원에서 먼저 띄웠다면 에이전트 창의 <b class="btn">🔎 사전검증 열기</b>를 쓰세요.</li>
       <li><b>등록 중 멈췄어요</b> → 창에 적힌 이유를 읽고, 세일즈원에서 해당 쿠폰이 저장됐는지 확인한 뒤 이어서 진행.</li>
@@ -206,9 +282,6 @@ document.querySelectorAll('button.copylink').forEach((b) => {
 (() => { const code = JSON.parse(document.getElementById('agentCode').textContent); const url = 'https://sleepychoonsik.github.io/coupon-agent-site/general/agent.txt';
   const loader = `void (async () => { let ok = false; try { const r = await fetch('${url}?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) { const t = await r.text(); (0, eval)(t); ok = true; } } catch (e) { console.warn('최신 코드를 못 받아 북마크 안의 코드로 실행해요', e); }\nif (!ok) {\n${code}\n} })()`;
   const sc = document.createElement('script'); sc.type = 'application/json'; sc.id = 'bookmarkCode'; sc.textContent = JSON.stringify('javascript:' + encodeURIComponent(loader)); document.body.appendChild(sc); })();
-(() => { const a = document.getElementById('bmdrag'); if (!a) return;
-  a.href = JSON.parse(document.getElementById('bookmarkCode').textContent);
-  a.addEventListener('click', (e) => { e.preventDefault(); const t = a.textContent; a.textContent = '여기서 누르지 말고 북마크바로 끌어다 놓아 주세요'; setTimeout(() => { a.textContent = t; }, 2500); }); })();
 document.querySelectorAll('button.copy').forEach((b) => {
   const label = b.textContent;
   b.addEventListener('click', async () => {

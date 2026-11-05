@@ -1244,7 +1244,7 @@ $('openso').addEventListener('click', () => {
 // 누를 때마다 공개 주소의 최신 에이전트 코드를 받아 실행하고, 못 받으면 북마크 안의 코드로 실행한다 (승인 북마크와 같은 방식) → 버전이 올라가도 북마크를 다시 만들 필요 없음
 const AGENT_URL = 'https://sleepychoonsik.github.io/coupon-agent-site/general/agent.txt';
 const bookmarkCode = () => 'javascript:' + encodeURIComponent(`void (async () => { let ok = false; try { const r = await fetch('${AGENT_URL}?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) { const t = await r.text(); (0, eval)(t); ok = true; } } catch (e) { console.warn('최신 코드를 못 받아 북마크 안의 코드로 실행해요', e); }\nif (!ok) {\n${agentCode()}\n} })()`);
-$('bmcode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet(bookmarkCode())) ? '✓ 북마크 코드를 복사했어요. 북마크바 오른쪽 클릭 → 페이지 추가 → 이름 🤖 쿠폰 에이전트, URL 칸에 Ctrl+V → 저장. 그다음부터 세일즈원 창에서 이 북마크를 누르면 돼요.' : '자동 복사가 막혀 있어요. 설명서의 [🤖 쿠폰 에이전트] 버튼을 북마크바로 끌어다 놓아 만들어 주세요.'; });
+$('bmcode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet(bookmarkCode())) ? '✓ 북마크 코드를 복사했어요. 북마크바 오른쪽 클릭 → 페이지 추가 → 이름 🤖 쿠폰 에이전트, URL 칸에 Ctrl+V → 저장. 그다음부터 세일즈원 창에서 이 북마크를 누르면 돼요.' : '자동 복사가 막혀 있어요. 설명서의 [🤖 북마크 코드 복사]로 다시 해 보세요.'; });
 // 에이전트 코드를 조용히 복사한다 (④의 복사 칸을 펼치지 않고). 회사 PC는 clipboard API가 막힐 수 있어 execCommand부터
 function copyQuiet(t) {
   const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;left:-9999px'; document.body.appendChild(ta); ta.focus(); ta.select();
