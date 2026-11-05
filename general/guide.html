@@ -101,23 +101,23 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
   </nav>
 
   <section class="card" id="overview">
-    <h2>한눈에 보기: 창 2개가 짝으로 움직여요</h2>
+    <h2>한눈에 보기: 계획/검증 화면과 실행 화면</h2>
     <div class="pair">
-      <div class="pair-i"><span class="pair-n">창 1</span><b>사전검증 페이지</b><span>맨 위 <b>쿠폰 에이전트 [열기]</b>로 여는 화면이에요. 상품코드와 가격을 넣으면 쿠폰을 <b>계산</b>해요.</span></div>
-      <div class="pair-i"><span class="pair-n">창 2</span><b>세일즈원 + 🤖 에이전트 패널</b><span>북마크로 띄워요. 계산된 쿠폰을 세일즈원에 <b>입력·저장</b>해요.</span></div>
+      <div class="pair-i"><span class="pair-n">화면 1 · 계획/검증</span><b>사전검증 페이지</b><span>맨 위 <b>쿠폰 에이전트 [열기]</b>로 열어요. 상품코드와 가격을 넣으면 어떤 쿠폰을 만들지 <b>계획</b>하고, 최종가·마진·겹치는 쿠폰을 <b>검증</b>해요.</span></div>
+      <div class="pair-i"><span class="pair-n">화면 2 · 실행</span><b>세일즈원 + 🤖 에이전트 패널</b><span>세일즈원에서 북마크로 띄워요. 계획한 쿠폰을 세일즈원에 <b>등록·저장</b>하고 상품까지 연결해요.</span></div>
     </div>
-    <p>두 창은 서로 알아서 주고받아요. <b>복사·붙여넣기 없이 버튼만</b> 누르면 돼요.</p>
+    <p>두 화면은 서로 알아서 주고받아요. <b>복사·붙여넣기 없이 버튼만</b> 누르면 돼요.</p>
     <div class="flowfig" role="img" aria-label="사전검증 페이지와 세일즈원 에이전트 패널이 주고받는 순서 그림">
       <svg viewBox="0 0 760 400" xmlns="http://www.w3.org/2000/svg" font-family="Pretendard, 'Malgun Gothic', system-ui, sans-serif">
         <defs>
           <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--accent)"/></marker>
         </defs>
-        <!-- 창 1: 사전검증 -->
+        <!-- 화면 1: 계획/검증 -->
         <rect x="8" y="8" width="252" height="300" rx="12" style="fill:var(--card);stroke:var(--line)" stroke-width="1.5"/>
         <rect x="8" y="8" width="252" height="36" rx="12" style="fill:var(--soft)"/>
         <rect x="8" y="32" width="252" height="12" style="fill:var(--soft)"/>
         <circle cx="26" cy="26" r="4" style="fill:var(--line)"/><circle cx="40" cy="26" r="4" style="fill:var(--line)"/>
-        <text x="134" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">창 1 · 사전검증 페이지</text>
+        <text x="134" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">화면 1 · 사전검증 페이지</text>
         <g font-size="12.5" style="fill:var(--sub)">
           <rect x="24" y="60" width="220" height="40" rx="7" style="fill:var(--bg);stroke:var(--line)"/>
           <text x="36" y="85">1 상품코드 | 가격·할인</text>
@@ -130,14 +130,14 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
         <text x="78" y="236" text-anchor="middle" font-size="12.5" font-weight="700" fill="#fff">쿠폰 만들기</text>
         <rect x="138" y="214" width="106" height="34" rx="7" style="fill:var(--card);stroke:var(--accent)"/>
         <text x="191" y="236" text-anchor="middle" font-size="12.5" font-weight="700" style="fill:var(--accent)">세일즈원 열기</text>
-        <text x="134" y="334" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">🧮 계산하는 곳</text>
+        <text x="134" y="334" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">🧮 계획 / 검증</text>
 
-        <!-- 창 2: 세일즈원 + 패널 -->
+        <!-- 화면 2: 실행 -->
         <rect x="500" y="8" width="252" height="300" rx="12" style="fill:var(--card);stroke:var(--line)" stroke-width="1.5"/>
         <rect x="500" y="8" width="252" height="36" rx="12" style="fill:var(--soft)"/>
         <rect x="500" y="32" width="252" height="12" style="fill:var(--soft)"/>
         <circle cx="518" cy="26" r="4" style="fill:var(--line)"/><circle cx="532" cy="26" r="4" style="fill:var(--line)"/>
-        <text x="626" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">창 2 · 세일즈원 쿠폰등록</text>
+        <text x="626" y="31" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">화면 2 · 세일즈원 쿠폰등록</text>
         <g style="fill:var(--line)"><rect x="516" y="58" width="140" height="10" rx="3"/><rect x="516" y="76" width="100" height="10" rx="3"/><rect x="516" y="94" width="120" height="10" rx="3"/></g>
         <rect x="560" y="116" width="180" height="150" rx="10" style="fill:var(--card);stroke:var(--accent)" stroke-width="2"/>
         <text x="650" y="140" text-anchor="middle" font-size="13" font-weight="700" style="fill:var(--ink)">🤖 에이전트 패널</text>
@@ -146,13 +146,13 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
         <rect x="574" y="190" width="152" height="30" rx="6" style="fill:var(--card);stroke:var(--accent)"/>
         <text x="650" y="210" text-anchor="middle" font-size="12" font-weight="700" style="fill:var(--accent)">상품-쿠폰 일괄 등록</text>
         <text x="650" y="246" text-anchor="middle" font-size="11.5" style="fill:var(--sub)">승인은 누르지 않아요</text>
-        <text x="626" y="334" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">✍️ 세일즈원에 입력하는 곳</text>
+        <text x="626" y="334" text-anchor="middle" font-size="14" font-weight="700" style="fill:var(--ink)">✍️ 실행</text>
 
         <!-- 주고받기 화살표 -->
         <g font-size="12.5" text-anchor="middle">
           <line x1="268" y1="76" x2="492" y2="76" style="stroke:var(--accent)" stroke-width="2" marker-end="url(#ah)"/>
           <text x="380" y="64" font-weight="700" style="fill:var(--ink)">① [세일즈원 열기]</text>
-          <text x="380" y="94" style="fill:var(--sub)">세일즈원이 새 창으로 열려요</text>
+          <text x="380" y="94" style="fill:var(--sub)">세일즈원이 새로 열려요</text>
 
           <line x1="268" y1="140" x2="492" y2="140" style="stroke:var(--accent)" stroke-width="2" marker-start="url(#ah)"/>
           <text x="380" y="128" font-weight="700" style="fill:var(--ink)">② 북마크 🤖 클릭</text>
@@ -172,7 +172,7 @@ code{background:var(--bg);border:1px solid var(--line);border-radius:4px;padding
     </div>
     <ol class="steps5">
       <li><b>사전검증 페이지</b>에서 <b class="btn">세일즈원 열기</b>를 눌러요.</li>
-      <li>열린 세일즈원 창에서 북마크 <b>🤖 쿠폰 에이전트</b>를 눌러요. 패널에 "검증 화면과 연결됐어요"가 나오면 준비 끝이에요.</li>
+      <li>열린 세일즈원 화면에서 북마크 <b>🤖 쿠폰 에이전트</b>를 눌러요. 패널에 "검증 화면과 연결됐어요"가 나오면 준비 끝이에요.</li>
       <li>사전검증 1번 칸에 상품코드·가격을 붙여넣고 기간·브랜드·팀구분을 적은 뒤 <b class="btn">세일즈원에서 2·3번 불러오기</b>를 눌러요.</li>
       <li><b class="btn">쿠폰 만들기</b>를 누르면 만든 쿠폰이 패널로 자동으로 들어가요.</li>
       <li>패널에서 <b class="btn">남은 쿠폰 전부 등록</b> → <b class="btn">상품-쿠폰 일괄 등록</b>을 누르면 끝이에요.</li>
