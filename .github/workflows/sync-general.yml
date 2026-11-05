@@ -1,0 +1,35 @@
+# 패션1팀 파일(agent.txt·index.html·guide-share.html)이 바뀌면 범용판(general/)을 자동으로 다시 만든다.
+# 범용판 변경을 커밋한 뒤 Pages 배포를 한 번 더 돌린다 (GITHUB_TOKEN 커밋은 push 배포를 다시 깨우지 않음).
+# 원본 문구가 바뀌어 교체할 곳을 못 찾으면 이 작업만 실패하고(general/은 이전 상태 유지) 패션1팀 배포에는 영향 없음.
+name: Sync general version
+on:
+  push:
+    branches: [main]
+    paths: [agent.txt, index.html, guide-share.html, tools/build-general.js]
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: write
+concurrency:
+  group: sync-general
+  cancel-in-progress: false
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node tools/build-general.js .
+      - name: Commit and redeploy if changed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- general; then echo "범용판 변화 없음"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add general
+          git commit -m "sync: 범용판(general/) 자동 갱신"
+          git push
+          gh workflow run pages.yml --ref main
