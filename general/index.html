@@ -123,8 +123,8 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
     <textarea id="targets" spellcheck="false" placeholder="1130687399	89000&#10;1130687400	15%&#10;1130687401	-9000&#10;1130687402	15%	2026-10-15 00:00	2026-10-15 23:59"></textarea>
     <div class="count" id="targetsCount"></div>
     <div class="sobox" id="sobox">
-      <div class="row"><button id="openso">세일즈원 열기</button><button id="bmcode" class="ghost" title="북마크 URL 칸에 붙여넣을 코드를 복사해요">🤖 북마크 코드 복사</button><button id="socode" class="ghost" title="세일즈원 콘솔에 붙여넣을 에이전트 코드를 복사해요">콘솔용 코드 복사</button></div>
-      <p class="muted" id="sohint" style="margin:6px 0 0"><b>처음 한 번</b>: [🤖 북마크 코드 복사] → 크롬 북마크바에서 오른쪽 클릭 → <b>페이지 추가</b> → 이름 <b>🤖 쿠폰 에이전트</b>, URL 칸에 <b>Ctrl+V</b> → 저장. 그다음부터는 [세일즈원 열기] → 세일즈원 창에서 북마크 <b>🤖 쿠폰 에이전트</b> 클릭이면 두 창이 이어져요. (북마크가 안 되는 PC는 [콘솔용 코드 복사] → 세일즈원 창에서 F12 → Console → Ctrl+V → Enter.)</p>
+      <div class="row"><button id="openso">세일즈원 열기</button><button id="bmcode" class="ghost" title="북마크 URL 칸에 붙여넣을 코드를 복사해요">🤖 북마크 코드 복사</button><button id="socode" class="ghost" style="display:none" title="세일즈원 콘솔에 붙여넣을 에이전트 코드를 복사해요">콘솔용 코드 복사</button></div>
+      <p class="muted" id="sohint" style="margin:6px 0 0"><b>처음 한 번</b>: [🤖 북마크 코드 복사] → 크롬 북마크바에서 오른쪽 클릭 → <b>페이지 추가</b> → 이름 <b>🤖 쿠폰 에이전트</b>, URL 칸에 <b>Ctrl+V</b> → 저장. 그다음부터는 [세일즈원 열기] → 세일즈원 창에서 북마크 <b>🤖 쿠폰 에이전트</b> 클릭이면 두 창이 이어져요. 북마크는 누를 때마다 최신 버전을 받아 오니 한 번만 만들면 돼요.</p>
       <div class="row" style="margin-top:8px"><button id="fetchso" class="ghost" disabled>세일즈원에서 2·3번 불러오기</button><span class="muted" id="fetchhint">세일즈원 창과 이어지면 2·3번을 붙여넣지 않고 바로 불러올 수 있어요.</span></div>
     </div>
     <ul class="need" style="margin-top:12px">
@@ -214,18 +214,18 @@ kbd{font:12px ui-monospace,Consolas,monospace;background:var(--bg);border:1px so
       <h2><span class="badge">4</span>다음 단계: 세일즈원에 넣기</h2>
       <div class="row" style="margin:6px 0 10px">
         <button id="sendagent" class="big" disabled style="display:none" title="세일즈원 창의 쿠폰 에이전트에 만든 쿠폰을 바로 보내요">에이전트로 보내기</button>
-        <button id="cpfill" class="big" disabled title="세일즈원 쿠폰등록 화면의 개발자도구 콘솔에 붙여넣으면 쿠폰 에이전트가 열려요">세일즈원 입력 코드 복사</button>
+        <button id="cpfill" class="big" disabled style="display:none" title="세일즈원 쿠폰등록 화면의 개발자도구 콘솔에 붙여넣으면 쿠폰 에이전트가 열려요">세일즈원 입력 코드 복사</button>
         <span class="muted" id="cphint"></span>
       </div>
       <div id="copybox" style="display:none;margin-bottom:10px">
         <div class="row" style="margin:0 0 6px"><button id="copyagain" class="ghost">다시 복사</button><span id="copymsg" style="font-weight:600"></span></div>
         <textarea id="copyta" readonly style="min-height:70px"></textarea>
       </div>
-      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창과 이어져 있으면(1번 아래 [세일즈원 열기] → 그 창에서 북마크 🤖 쿠폰 에이전트) 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[쿠폰 전부 등록 시작]</b>을 누르면 돼요. 아니면 아래 순서로 넣으세요.</p>
+      <p class="help" id="agentway" style="margin:0 0 8px">세일즈원 창과 이어져 있으면(1번 아래 [세일즈원 열기] → 그 창에서 북마크 🤖 쿠폰 에이전트) 만든 쿠폰이 <b>자동으로 그 창에 들어가요</b>. 그 창에서 <b>[남은 쿠폰 전부 등록]</b>을 누르면 돼요.</p>
       <ol>
-        <li>위 <b>[세일즈원 입력 코드 복사]</b>를 누르세요.</li>
-        <li>세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 화면에서 <kbd>F12</kbd> → <b>Console</b> 탭을 여세요.</li>
-        <li>붙여넣고 <kbd>Enter</kbd>. 오른쪽 아래에 <b>🤖 쿠폰 에이전트</b>가 열리면 <b>[남은 쿠폰 전부 등록]</b>을 누르세요.</li>
+        <li>안 이어져 있으면 세일즈원 <b>쿠폰관리 &gt; 쿠폰등록</b> 창에서 북마크 <b>🤖 쿠폰 에이전트</b>를 누르세요.</li>
+        <li>이어지면 위 <b>[에이전트로 보내기]</b>가 나타나요. 눌러서 쿠폰을 보내세요.</li>
+        <li>에이전트 창에서 <b>[남은 쿠폰 전부 등록]</b>을 누르세요.</li>
       </ol>
       <p class="muted" style="margin:8px 0 0">에이전트는 추가 → 칸 채우기 → 저장 → 채널(인터넷·M커머스) → 상품-쿠폰 일괄 등록까지 하고, 승인은 누르지 않아요.</p>
     </section>
@@ -1165,7 +1165,7 @@ $('make').addEventListener('click', () => {
   $('gennotes').innerHTML = '<tr><th>상태</th><th>상품코드</th><th>상품명</th><th>현재 판매가</th><th>입력</th><th>최종가</th><th>쿠폰</th><th>계산</th></tr>' +
     plan.notes.map((n) => `<tr><td><span class="lv lv-${st[n.status]}">${n.status}</span></td><td>${esc(n.product)}</td><td>${esc(n.name)}</td><td class="num">${won(n.price)}</td><td>${esc(n.input || '')}</td><td class="num">${n.target != null ? won(n.target) : ''}</td><td>${esc(n.planId || '')}</td><td>${esc(n.message)}</td></tr>`).join('');
   $('cpfill').disabled = !plan.plannedCoupons.length; $('sendagent').disabled = !plan.plannedCoupons.length;
-  $('cphint').textContent = plan.plannedCoupons.length ? '' : '만들 쿠폰이 없어서 복사 버튼이 꺼져 있어요.'; $('copybox').style.display = 'none';
+  $('cphint').textContent = plan.plannedCoupons.length ? (agent.win ? '' : '세일즈원 창에서 북마크 🤖 쿠폰 에이전트를 누르면 이어지고, 이어지면 [에이전트로 보내기]로 보낼 수 있어요.') : '만들 쿠폰이 없어요.'; $('copybox').style.display = 'none';
   $('genCount').textContent = `쿠폰 ${plan.plannedCoupons.length}장 · 상품 ${plan.mappings.length}개`;
   run({ plannedCoupons: plan.plannedCoupons, mappings: plan.mappings, current: plan.current }, '붙여넣은 조회 결과');
   setStep(plan.plannedCoupons.length ? 4 : 3);
@@ -1238,13 +1238,13 @@ $('openso').addEventListener('click', () => {
   soWin = window.open(window.__cpnSalesOneUrl || SO_URL, 'cpnSalesOne');
   if (soWin) try { soWin.focus(); } catch {}
   if (!soWin) { $('sohint').textContent = '팝업이 막혀 있어요. 주소창 오른쪽의 팝업 차단 표시를 눌러 허용한 뒤 다시 누르세요.'; return; }
-  $('sohint').textContent = '세일즈원 창이 열렸어요. 로그인한 뒤 그 창에서 북마크 [🤖 쿠폰 에이전트]를 누르면 두 창이 이어져요. (북마크가 없으면 [🤖 북마크 코드 복사]로 먼저 만들거나, [콘솔용 코드 복사] → F12 → Console → Ctrl+V → Enter.)';
+  $('sohint').textContent = '세일즈원 창이 열렸어요. 로그인한 뒤 그 창에서 북마크 [🤖 쿠폰 에이전트]를 누르면 두 창이 이어져요. (북마크가 없으면 [🤖 북마크 코드 복사]로 먼저 만들어 주세요.)';
 });
 // 북마크용 코드(bookmarklet): 에이전트 코드 전체를 javascript: 주소로 담는다. 북마크 추가 창의 URL 칸에 붙여넣는다. (끌어다 놓기는 회사 PC에서 막혀 있음, 2026-10-22)
 // 누를 때마다 공개 주소의 최신 에이전트 코드를 받아 실행하고, 못 받으면 북마크 안의 코드로 실행한다 (승인 북마크와 같은 방식) → 버전이 올라가도 북마크를 다시 만들 필요 없음
 const AGENT_URL = 'https://sleepychoonsik.github.io/coupon-agent-site/general/agent.txt';
 const bookmarkCode = () => 'javascript:' + encodeURIComponent(`void (async () => { let ok = false; try { const r = await fetch('${AGENT_URL}?t=' + Date.now(), { cache: 'no-store' }); if (r.ok) { const t = await r.text(); (0, eval)(t); ok = true; } } catch (e) { console.warn('최신 코드를 못 받아 북마크 안의 코드로 실행해요', e); }\nif (!ok) {\n${agentCode()}\n} })()`);
-$('bmcode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet(bookmarkCode())) ? '✓ 북마크 코드를 복사했어요. 북마크바 오른쪽 클릭 → 페이지 추가 → 이름 🤖 쿠폰 에이전트, URL 칸에 Ctrl+V → 저장. 그다음부터 세일즈원 창에서 이 북마크를 누르면 돼요.' : '자동 복사가 막혀 있어요. [콘솔용 코드 복사] 방법을 써 주세요.'; });
+$('bmcode').addEventListener('click', async () => { $('sohint').textContent = (await copyQuiet(bookmarkCode())) ? '✓ 북마크 코드를 복사했어요. 북마크바 오른쪽 클릭 → 페이지 추가 → 이름 🤖 쿠폰 에이전트, URL 칸에 Ctrl+V → 저장. 그다음부터 세일즈원 창에서 이 북마크를 누르면 돼요.' : '자동 복사가 막혀 있어요. 설명서의 [🤖 쿠폰 에이전트] 버튼을 북마크바로 끌어다 놓아 만들어 주세요.'; });
 // 에이전트 코드를 조용히 복사한다 (④의 복사 칸을 펼치지 않고). 회사 PC는 clipboard API가 막힐 수 있어 execCommand부터
 function copyQuiet(t) {
   const ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;left:-9999px'; document.body.appendChild(ta); ta.focus(); ta.select();
@@ -1853,8 +1853,8 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   function render() {
     if (!plan || !plan.coupons.length) {
       body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">${linked ? '✓ 검증 화면과 연결됐어요. 검증 화면에서 <b>[세일즈원에서 2·3번 불러오기]</b> → <b>[쿠폰 만들기]</b>를 하면 만든 쿠폰이 이 창에 바로 들어와요.' : '등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.'}</p>
-        <div class="hint">예전 방식(검증 화면의 [세일즈원 입력 코드 복사] → 콘솔에 붙여넣기)도 그대로 돼요. 계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
-      $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 사전검증 도구에서 복사한 코드를 콘솔에 붙여넣어 주세요.'); } };
+        <div class="hint">계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
+      $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 검증 화면의 [에이전트로 보내기]를 써 주세요.'); } };
       return;
     }
     const cs = codes();

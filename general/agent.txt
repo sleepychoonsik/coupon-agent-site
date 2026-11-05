@@ -489,8 +489,8 @@ return { COUPON_API_RE, PRODUCT_API_PATH, COUPON_COLUMNS, PRODUCT_COLUMNS, coupo
   function render() {
     if (!plan || !plan.coupons.length) {
       body.innerHTML = `${status ? `<div class="st busy">${esc(status)}</div>` : ''}<p style="margin:0 0 6px">${linked ? '✓ 검증 화면과 연결됐어요. 검증 화면에서 <b>[세일즈원에서 2·3번 불러오기]</b> → <b>[쿠폰 만들기]</b>를 하면 만든 쿠폰이 이 창에 바로 들어와요.' : '등록할 쿠폰이 없어요. 위 <b>[🔎 사전검증 열기]</b>로 검증 화면을 열면, 거기서 <b>[세일즈원에서 불러오기]</b>로 조회 결과를 가져오고 <b>쿠폰 만들기</b>를 누르면 만든 쿠폰이 이 창에 바로 들어와요.'}</p>
-        <div class="hint">예전 방식(검증 화면의 [세일즈원 입력 코드 복사] → 콘솔에 붙여넣기)도 그대로 돼요. 계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
-      $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 사전검증 도구에서 복사한 코드를 콘솔에 붙여넣어 주세요.'); } };
+        <div class="hint">계획 내용(JSON)을 직접 붙여넣을 수도 있어요.</div><textarea id="paste"></textarea><div class="row"><button class="g" id="load">불러오기</button></div>`;
+      $('#load').onclick = () => { try { loadPlan(JSON.parse($('#paste').value)); render(); } catch { alert('붙여넣은 내용을 읽지 못했어요. 검증 화면의 [에이전트로 보내기]를 써 주세요.'); } };
       return;
     }
     const cs = codes();
